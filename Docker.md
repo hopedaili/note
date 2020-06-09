@@ -49,7 +49,7 @@ cat /etc/redhat-release
 
 1. 卸载旧版本
 
-   ```shell
+   ```bash
    $ sudo yum remove docker \
                      docker-client \
                      docker-client-latest \
@@ -97,14 +97,15 @@ cat /etc/redhat-release
 1. 配置镜像加速器
 
 ```shell
-sudo mkdir -p /etc/docker 
-sudo tee /etc/docker/daemon.json <<-'EOF' 
+sudo mkdir -p /etc/docker
+sudo tee /etc/docker/daemon.json <<-'EOF'
 {
-"registry-mirrors":["阿里云加速器地址"] 
-} 
-EOF 
-sudo systemctl daemon-reload 
-sudo systemctl restart docker 
+  "registry-mirrors": ["https://zfx5kio4.mirror.aliyuncs.com"]
+}
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl restart docker
 ```
 
 2. 检查是否配置加速器成功

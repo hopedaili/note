@@ -14,7 +14,7 @@
 #### 1.1 打开文件
 
 ```bash
-vim /etc/sysconfig/network-scripts/ifcfg-ens33
+$ vim /etc/sysconfig/network-scripts/ifcfg-ens33
 ```
 
 #### 1.2 编辑内容
@@ -53,25 +53,24 @@ esc
 #### 1.4. 重启网络
 
 ```bash
-systemctl restart network
+$ systemctl restart network
 或者
-service network restart （Linux更早版本）
+$ service network restart （Linux更早版本）
 ```
 
 ### 2、查看IP地址
 
 ```bash
-ifconfig
-ip addr (如果上面那个指令报错)
+$ ifconfig
+$ ip addr (如果上面那个指令报错)
 ```
 
-### 3、修改的文件即时生效
+### 3、修改的文件即时生效（source 或者 .）
 
 ```bash
-# source 或者 .
 例如：
-source /etc/profile
-. /etc/profile
+$ source /etc/profile
+$ . /etc/profile
 ```
 
 ### 4、防火墙状态查看及起停
@@ -79,27 +78,27 @@ source /etc/profile
 4.1 查看防火墙状态
 
 ```bash
-chkconfig iptables --list //6及之前
-service iptables status //或者
-irewall-cmd --state	//7
+$ chkconfig iptables --list //6及之前
+$ service iptables status //或者
+$ irewall-cmd --state	//7
 ```
 
 4.2 开启关闭（即时生效，重启后回复）
 
 ```bash
-service iptables start //开启（6及之前）
-service iptables stop //关闭（6及之前）
-systemctl start firewalld.service //开启起（7）
-systemctl stop firewalld.service //关闭（7）
+$ service iptables start //开启（6及之前）
+$ service iptables stop //关闭（6及之前）
+$ systemctl start firewalld.service //开启起（7）
+$ systemctl stop firewalld.service //关闭（7）
 ```
 
 4.3 开启关闭（永久生效，重启后不复原）
 
 ```bash
-chkconfig iptables on //开启（6及之前）
-chkconfig iptables off //关闭（6及之前）
-systemctl enable firewalld.service //开启起（7）
-systemctl disable firewalld.service //关闭（7）
+$ chkconfig iptables on //开启（6及之前）
+$ chkconfig iptables off //关闭（6及之前）
+$ systemctl enable firewalld.service //开启起（7）
+$ systemctl disable firewalld.service //关闭（7）
 ```
 
 ### 5、端口号相关 netstat命令
@@ -122,13 +121,13 @@ systemctl disable firewalld.service //关闭（7）
 #### 5.1 查看当前所有已使用端口情况
 
 ```bash
-netstat -nultp
+$ netstat -nultp
 ```
 
 #### 5.2查看固定端口相关信息
 
 ```bash
-netstat -anp | grep 3306
+$ netstat -anp | grep 3306
 ```
 
 
