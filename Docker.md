@@ -110,7 +110,7 @@ sudo systemctl restart docker
 2. 检查是否配置加速器成功
 
 ```shell
-ps -ef | grep docker
+ps -ef | grep docker 
 ```
 
 
