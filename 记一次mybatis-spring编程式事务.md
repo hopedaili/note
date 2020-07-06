@@ -39,7 +39,7 @@ public class UserController {
 }
 ```
 
-### 2.封装类（好用，但不知道会不会由于单例，导致所有方法的事务一起回滚）
+### 2.封装类
 
 ```java
 package com.kd.yxcd.util;
