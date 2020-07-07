@@ -13,6 +13,7 @@ public class UserController {
 	private UserGunMapper userGunMapper;
 	@Autowired
 	private OdOrderMapper odOrderMapper;
+    @Autowired
 	private PlatformTransactionManager txManager;
 	
 	@RequestMapping("/tx")
