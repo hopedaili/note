@@ -82,7 +82,27 @@ public static void main(String[] args) {
 
 ## 1.5 利用 Java 5 泛型实现泛型特性成分
 
+### 1.5.1 简单的泛型类和接口
 
+### 1.5.2 自动装箱/拆箱
+
+自动装箱：一个 int 型变量被传递到需要一个 Integer 对象的地方，编译器将在幕后插入一个对 Integer 构造方法的调用。
+
+自动拆箱：一个 Integer 对象被放到需要 int 类型变量的地方，编译器再幕后插入一个对 intValue 方法的调用。
+
+### 1.5.3 带有限制的通配符
+
+```java
+public static double totalArea(Collection<? extends Shape> arr){
+    double total = 0;
+    for(Shape s : arr)
+        if(s != null)
+            total += s.srea();
+    return total;
+}
+```
+
+### 1.5.4 泛型 static 方法
 
 
 
