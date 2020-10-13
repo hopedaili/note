@@ -102,11 +102,33 @@ public static double totalArea(Collection<? extends Shape> arr){
 }
 ```
 
-### 1.5.4 泛型 static 方法
+### 1.5.4 泛型 static 方法 ？
 
+有时候特定类型很重要：
 
+1. 该特定类型用作返回类型；
+2. 该类型用在多于一个的参数类型中；
+3. 该类型用于声明一个局部变量；
 
+如果是这样，那么，必须要声明一种带有若干类型参数的显示泛型方法。
 
+### 1.5.5 类型限界
+
+```java
+//在一个数组中找出最大元的泛型 static 方法
+//public static <AnyType>
+//public static <AnyType extends Comparable>
+//public static <AnyType extends Comparable<AnyType>>
+public static <AnyType extends Comparable<? super AnyType>> AnyType findMax(AnyType[] arr){
+    int maxIndex = 0;
+    for(int i = 1; i < arr.length; i++)
+        if(arr[i].compareTo(arr[maxIndex]) > 0)
+            maxIndex = i;
+    return arr[maxIndex];
+}
+```
+
+### 1.5.6 类型擦除
 
 
 
