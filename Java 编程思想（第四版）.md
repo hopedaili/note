@@ -39,29 +39,74 @@ public class TwoTuple<A,B>{
 
 - 泛型可以应用于接口。例如生成器（generator），这是一种专门负责创建对象的类。
 
+```java
+public interface Generator<T> { T next(); }
+```
 
+## 15.4 泛型方法
 
+- 是否拥有泛型方法，与其所在的类是否是泛型没有关系。
+- 泛型方法使得该方法能够独立于类而产生变化。
 
+> 基本指导原则：无论何时，只要能做到，就应该只使用泛型方法。
+>
+> 也就是说，如果使用泛型方法可以取代整个类泛型化，那么就应该只使用泛型方法，因为它可以使事情更清楚明白。
+>
+> 对于一个 static 的方法而言，无法访问泛型类的类型参数，所以，如果 static 方法需要使用泛型的能力，就必须使其成为泛型方法。
 
+定义泛型方法：将泛型参数列表置于返回值之前。
 
+```java
+public class GenericMenthods{
+    public <T> void f(T x){
+    	System.out.println(x.getClass().getName());
+	}
+    public static void main(String[] args){
+        GenericMethods gm = new GenericMethods();
+        gm.f("");
+        gm.f(1);
+    }
+}
+```
 
+> 当时用**泛型类**时，必须在创建对象的时候指定类型参数的值，而使用**泛型方法**的时候，通常不必指明参数类型，因为编译器会为我们找出具体的类型。这称为**类型参数推断**。
+>
 
+### 15.4.1 杠杆利用类型参数推断
 
+- 类型推断只对赋值操作有效。
 
+> 如果将一个泛型方法调用的结果（例如New.map()）作为参数，传递给另一个方法，这时编译器并不会执行类型推断。在这种情况下，编译器认为：调用泛型方法后，其返回值被赋给一个 Object 类型的变量。
+>
 
+- 显式的类型说明（编写非赋值语句时使用）
 
+> 要显式地指明类型，必须在点操作符与方法名之间插入尖括号，然后把类型置于尖括号内。如果是在定义该方法的类的内部，必须在点操作符之前使用 this 关键字，如果是使用 static 的方法，必须在点操作符之前加上类名。
+>
 
+用/显示的类型说明/语法/解决/泛型方法调用的结果作为参数/例子：
 
+```java
+public class ExplicitTypeSpecification{
+    static void f(Map<Person, List<pet>> petPeople){}
+    public static void main(String[] args){
+        //f(New.map()); //Dose not compile
+        f(New.<Person, List<Pet>>map());
+    }
+}
+```
 
+### 15.4.2 可变参数与泛型方法
 
+### 15.4.3 用于 Generator 的泛型方法
 
+### 15.4.4 一个通用的 Generator
 
+### 15.4.5 简化元组的使用
 
+### 15.4.6 一个 Set 实用工具
 
-
-
-
-
+## 15.5 匿名内部类
 
 
 
