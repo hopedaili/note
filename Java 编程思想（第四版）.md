@@ -108,7 +108,7 @@ public class ExplicitTypeSpecification{
 
 ## 15.5 匿名内部类
 
-
+123
 
 
 
