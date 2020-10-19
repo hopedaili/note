@@ -154,25 +154,108 @@ Java：协助泛型类，给定泛型类的边界，以此告知编译器只能�
 
 ## 15.9 边界
 
+## 15.10 通配符
 
+- （复习）编译在左，运行在右。
 
+```java
+public static void Main(String[] args){
+    Fruit[] fruit = new Apple[10];
+    fruit[0] = new Apple(); //OK
+    fruit[1] = new Jonathan(); //OK
+    // Runtime type is Apple[]
+    try{
+        //Compiler allows you to add Fruit:
+        fruit[0] = new Fruit(); // ArrayStoreException
+    }catch(Expection e){
+        System.out.println(e);
+    }
+}/* Output:
+java.lang.ArrayStoreException:Fruit */
+//泛型会在编译器就报错
+public class NonCovariantGenerics{
+    //Compile Error: incompatible types:
+    List<Fruit> first = new ArrayList<Apple>();
+}
+```
 
+- 有时想要在两个类型之间建立某种类型的向上转型关系，这正是通配符所允许的：
 
+```java
+public static void main(String[] args){
+    //Wildcards allow covariance:
+    List<? extends Fruit> = new ArrayList<Apple>();
+    //Compile Error:can't add any type of object;
+    //first.add(new Apple());
+    //first.add(new Fruit());
+    //first.add(new Object());
+    first.add(null);//Legal but uninteresting
+    //We know that it returns at least fruit:
+    Fruit f = flist.get(0);
+}
+```
 
+> List<? extends Fruit> 读作“具有任意从Fruit继承的类型的列表”。但这实际上并不意味着这个List将持有任何类型的Fruit。通配符引用的是明确的类型。因此它意味着“某种first应用没有指定的具体类型”
+>
+> 不知道List只有的具体类型，无法安全地向其中添加对象。向上转型，所以丢失掉想其中传递任何对象的能力。
+>
+> 调用一个返回Fruit的方法是安全的，编译器允许这么做
 
+### 15.10.1 编译器有多聪明
 
+### 15.10.2 逆变
 
+- 超级类型通配符
 
+> 可以生命通配符是由某个特定的任何基类来界定。
+>
+> 方法指定<? super MyClass>，甚至使用类型参数<? super T>。
+>
+> 不能对泛型参数给出一个超类型边界，即不能声明<T super MyClass>。
 
+```java
+public class SuperTypeWildcards {
+    static void writeTo(List<? super Apple> apples){
+        apples.add(new Apple());
+        apples.add(new Jonathan());
+        //apples.add(new Fruit()); //Error
+    }
+}
+```
 
+super 确定 apple 是下界，可以向其中添加 Apple 及其子类。
 
+根据向一个泛型类型“写入”（传递给一个方法），以及如何能够从一个泛型类型中“读取”（从一个方法中返回），思考子类型和超类型的边界。超类型边界放松了在可以想方法传递的参数上所做的限制：
 
+```java
+public class GenricWriting{
+    static <T> void writeExact(List<T> list, T item){
+        list.add(item);
+    }
+    static List<Apple> apples = new ArrayList<Apple>();
+    static List<Fruit> fruit = new ArrayList<Fruit>();
+    static void f1(){
+        writeExact(apples, new apple);
+        // writeExact(fruit, new apple); //Error:
+        // Incompatible tyoes: fount Fruit, required Apple
+    }
+    static <T> void writeWithWildcard(List<? super T> list, T item){
+        list.add(item);
+    }
+    static void f2(){
+        writeExact(apples, new apple);
+        writeExact(fruit, new apple); //Error:
+    }
+}
+```
 
+### 15.10.3 无界通配符
 
+> 由于泛型参数将擦除到他的第一个边界，因此 List<?> 看起来等价于 List<Object>，而 List 实际上也是 List<Object>。
+>
+> List 实际上表示“持有任何 Object 类型的原生 List”，而 List<?> 表示“具有某种特定类型的非原生 List，只是我们不知道那种类型是什么”
 
-
-
-
+### 15.10.4 捕获转换
 
 
 
