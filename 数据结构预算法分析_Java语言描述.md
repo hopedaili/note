@@ -130,9 +130,18 @@ public static <AnyType extends Comparable<? super AnyType>> AnyType findMax(AnyT
 
 ### 1.5.6 类型擦除
 
+### 1.5.7 对于泛型的限制
 
+- 基本类型
 
+- instanceof 检测
 
+- static 的语境
+- 泛型类型的实例化
+
+- 泛型数组对象
+
+### 1.6 函数对象
 
 
 
