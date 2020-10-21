@@ -199,9 +199,35 @@ public static <AnyType extends Comparable<? super AnyType>> AnyType findMax(AnyT
 
 ### 2.4.3 最大序列和问题的求解
 
+算法 1：
+
+算法 2：
+
+算法 3：
+
+算法 4：
+
+```java
+//最优算法 时间复杂度 O(N)
+public static int maxSubSum4(int a[]){
+    int maxSum = 0, thisSum = 0;
+    for(int j = 0; j < a.length; j++){
+        thisSum += a[j];
+        if(thisSum > maxSum)
+            maxSum = thisSum;
+        else if(thisSum < 0)
+            thisSum = 0;
+    }
+    return maxSum;
+}
+```
 
 
 
+- 联机算法：如果数组在磁盘上或者通过互联网传送，那么他就可以被按顺序读入，在主存中不必存储数组的任何部分。不仅如此，在任意时刻，算法都能对它已经读入的数据给出子序列问题的正确答案。
+- 仅需要常量空间并以线性时间运行的联机算法几乎是完美的算法。
+
+### 2.4.4 运行时间中的对数
 
 
 
