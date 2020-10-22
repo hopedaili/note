@@ -210,12 +210,12 @@ public static <AnyType extends Comparable<? super AnyType>> AnyType findMax(AnyT
 ```java
 //最优算法 时间复杂度 O(N)
 public static int maxSubSum4(int a[]){
-    int maxSum = 0, thisSum = 0;
+    int maxSum = 0, thisSum = a[0];
     for(int j = 0; j < a.length; j++){
         thisSum += a[j];
         if(thisSum > maxSum)
             maxSum = thisSum;
-        else if(thisSum < 0)
+        if(thisSum < 0) //字串和小于零，整个字串都是负收益，不要
             thisSum = 0;
     }
     return maxSum;
@@ -229,19 +229,62 @@ public static int maxSubSum4(int a[]){
 
 ### 2.4.4 运行时间中的对数
 
+> 分析算法最混乱的方面大概集中在对数上。某些分治算法以 O( N log N ) 时间运行。
+>
+> 对数规律一般概括：如果一个算法用常熟时间（O( 1 )）将问题的大小削减为其一部分（通常是 1/2），那么该算法就是 O( log N )。另一方面，如果使用常数时间只是把问题减少一个常数的数量（如将问题减少 1 ），那么这种算法就是 O( N ) 的。
 
+三个例子：
 
+- 折半查找（binary search）
 
+```java
+public static <AnyType extends Comparable<? super AnyType>>
+int binarySearch(AnyType a[], AnyType x){
+    int low = 0, high = a.length-1;
+    while (low <= high){
+        int mid = (low + high)/2;
+        if(a[mid].compareTo(x) > 0)
+            high = mid-1;
+        else if(a[mid].compareTo(x) < 0])
+            low = mid+1;
+        else
+            return mid;
+    }
+    return -1;
+}
+```
 
+- 欧几里得算法
 
+```java
+//假设m>=n，如果n>m，则循环第一次迭代将它们互换
+public static long gcd(long m, long n){
+    while(n!=0){
+        long rem = m%n;
+        m = n;
+        n = rem;
+    }
+    return m;
+}
+```
 
+> 算法连续计算余数直到余数是 0 为止，最后的非零余数就是最大公因数。
+>
+> 可以证明两次迭代以后，余数最多是原始值的一半，这就证明了迭代次数至多是 2 log N = O( log N )。证明如下：
+>
+> 定理：2.1 如果 M > N ，则 M mod N < M/2。
+>
+> 证明：存在两种情形。
+>
+> 1、如果 N <= M/2，余数小于 N，定理成立。
+>
+> 2、如果 N > M/2，余数为 M - N，也小于 M/2，定理得证。
+>
+> 更真实数据：
+>
+> 复杂度可以改进成 1.44logN，哦激励的算法迭代平均次数约为 $(12 ln2 lnN)/π^2+1.47$。
 
-
-
-
-
-
-
+- 幂运算
 
 
 
