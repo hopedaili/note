@@ -307,6 +307,372 @@ public static long pow(long x, long n){
 
 ### 2.4.5 检验你的分析
 
+### 2.4.6 分析结果的准确性
+
+# 第三章 表、栈和队列
+
+## 3.1 抽象数据类型
+
+- 抽象数据类型（abstract data type， ADT）是带有一组操作的一些对象的集合。
+
+## 3.2 表 ADT
+
+> 形如 $A~0,A~1,···,A~(N-1)$ 的一般的表，我们说这个表的大小是 N。将大小为零的表成为空表。
+>
+> 前驱，后继概念。
+
+### 3.2.1 表的简单数组实现
+
+> 数组实现的表可以使打印操作以线性时间被执行，查找操作花费常数时间。
+>
+> 不过插入和删除的操作开销大，最坏情况 O( N )，最好 O( 1 )。
+
+### 3.2.2 简单链表
+
+> 链表一般想法：避免插入和删除的线性开销，可以不连续存储。
+>
+> 增删快，查询慢。
+>
+> 双链表概念。
+
+## 3.3 Java Collections API 中的表
+
+### 3.3.1 Collection 接口
+
+扩展的 Iterable 接口，可以用增强 for 循环。
+
+### 3.3.2 Iterator 接口
+
+实现 Iterable 接口的集合必须提供一个称为 iterator 的方法，该方法返回一个 Iterator 类型的对象。该 Iterator 是一个在 java.util 包种定义的接口：
+
+```java
+public interface Iterator<AnyTupe>{
+    boolean hsaNext();
+    AnyType next();
+    void remove();
+}
+```
+
+> 与 Collection 的 remove 方法 相比，Iterator 的 remove 方法有更多的优点。
+>
+> 直接使用 Iterator（而不是通过一个增强的 for 循环间接使用） 时，基本法则：如果对正在被迭代的集合进行结构上的改变（即对该集合使用 add、remove 或 clear 方法），那么迭代器就不再合法（并且在其后使用该迭代器时将会有 VoncurrectModificationException 异常被抛出）。
+>
+> 只有在需要立即使用一个迭代器的时候，我们在应该获取迭代器。
+>
+> 如果迭代器调用了自己的 remove 方法，这个迭代器就仍然是合法的。
+
+### 3.3.3 List 接口、ArrayList 类和 LinkedList 类
+
+### 3.3.4 例：remove 方法对 LinkedList 类的使用
+
+将一个表种所有具有偶数值的项删除：
+
+```java
+//第一种想法。
+//在 ArrayList 上，remove 效率不高，花费二次时间
+//LinkedList 暴露两个问题。get 效率不高，花费两次时间；remove 调用低效，因为达到位置 i的代价昂贵
+public static void removeEvensVer1(List<Integer> lst){
+    int i = 0;
+    while(i < lit.size()){
+        if(lst.get(i) % 2 == 0)
+            lst.remove(i);
+        else
+            i++;
+    }
+}
+//使用 Collection 的 remove 方法删除，这不是高效操作，因为 remove 方法必须再次搜索该项，花费线性时间。
+//产生异常，因为当一项被删除时，由增强的 for 循环所使用的基础迭代器是非法的。
+//ConcurrectModificationExeption 异常
+public static void removeEvensVer2(List<Integer> lst){
+    for(Integer x : lit)
+        if(x % 2 == 0)
+            lst.remove(x);
+}
+//一种成功的想法：迭代器
+//LinkedList：remove 方法的调用花费常数时间，因为该迭代器位于需要被删除的节点（或在其附近）。整个程序是线性的，不是二次时间
+//ArrayList： remove 方法昂贵，整个程序仍然花费二次时间
+public static void removeEvensVer3(List<Integer> lst){
+    Iterator<Integer> itr = lst.iterator();
+    while(itr.hsaNext())
+        if(itr.next() % 2 == 0)
+            itr.remove();
+}
+```
+
+### 3.3.5 关于 ListIterator 接口
+
+## 3.4 ArrayList 类的实现
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
