@@ -403,7 +403,15 @@ public static void removeEvensVer3(List<Integer> lst){
 
 ## 3.4 ArrayList 类的实现
 
+### 3.4.1 基本类
 
+### 3.4.2 迭代器、Java 嵌套类和内部类
+
+## 3.5 LinkedList 类的实现
+
+## 3.6 栈 ADT
+
+### 3.6.1 栈模型
 
 
 
