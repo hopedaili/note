@@ -493,21 +493,95 @@ public static void removeEvensVer3(List<Integer> lst){
 
 # 第四章 树
 
+## 4.1 预备知识
 
+树（tree）的几种定义方式。其中一种是递归的方式。
 
+树是一些节点的集合。这些集合可以是空集；若不是空集，则由称作根（root）的节点的 r 以及 0 个或多个非空的子树组成，这些子树中每一颗的根都被来自根 r 的一条有向的边（dege）所连结。
 
+根节点，子节点概念。没有儿子的节点称为树叶（leaf）；具有相同父亲的节点称为兄弟（siblings）；
 
+### 4.1.1 树的实现
 
+```java
+//向下箭头指向 firstChild(第一个儿子) 的链，而水平箭头是指向 nextSibling(下一兄弟)的链。
+class TreeNode{
+    Object element;
+    TreeNode firstChild;
+    TreeNode nextSibling;
+}
+```
 
+![树的一种实现](img/数据结构预算法分析_Java语言描述.assets/树的一种实现.png)
 
+### 4.1.2 树的遍历及应用
 
+UNIX 文件系统目录遍历伪代码：
 
+//输出格式：深度为 $d~i$ 的文件将被 $d~i$ 次跳格（tab）缩进后打印其名。
 
+```java
+private void listAll(int depth){
+    pringName(depth); // Print the name of the object
+    if(isDirectory()){
+        for each file c in this directory (for each child)
+            c.listaAll(depth+1);
+    }
+    public void listAll(){
+        listAll(0);
+    }
+}
+```
 
+先序遍历：对节点的处理工作是在他的诸儿子节点被处理之前进行的。运行时间是 O（N）。
 
+后序遍历：对节点的处理工作是在他的诸儿子节点被处理之后进行的。
 
+//计算被该树所有文件占用的磁盘区块总数
 
+```java
+public int size(){
+    int totalSize = sizeOfThisFile();
+    if (isDirectory()){
+        for each file c in this directory(for each child)
+            totalSize += c.size();
+    }
+    return totalSize;
+}
+```
 
+## 4.2 二叉树
+
+**二叉树**（binary tree）是一颗树，集中每个节点不能有多余两个的儿子。
+
+二叉树的一个性质是一颗平均二叉树的深度要比结点个数 N 小很多，这个性质有时很重要。分析表明，平均深度为$O(\sqrt{N})$，查找二叉树（binary search tree）深度的平均值是$O(logN)$。最坏情形二叉树深度为 N-1。
+
+4.2.1 实现
+
+```java
+//二叉树节点类
+class BinaryNode{
+    Object element;		//The data in the node
+    BinaryNode left;	//Left child
+    BinaryNode right;	//Right child
+}
+```
+
+### 4.2.2 例子：表达式树
+
+中序遍历：左，根，右。得到一个中缀表达式。
+
+后序遍历：左，右，根。得到一个后缀表达式。
+
+先序遍历：根，左，右。不太常用的前缀表达式。
+
+#### 构造表达式树
+
+一次一个符号地读入表达式。如果符号是操作数，就建立一个单节点树并将它推入栈中。如果是操作符，就从栈中弹出两棵树 $T~2$ 和 $T~1$ （$T~2$ 先弹出）并形成一棵新树，该树的根就是操作符，他的左右儿子分别是$T~1$ 和 $T~2$，然后将这棵树压入栈中。
+
+## 4.3 查找树 ADT--二叉查找树
+
+使二叉树成为二叉查找树的性质是，对于树中的每个节点 X，它的左子树中所有项的值小于 X 中的项，而它右子树中所有的项的值大于 X 中的项。
 
 
 
