@@ -583,23 +583,182 @@ class BinaryNode{
 
 使二叉树成为二叉查找树的性质是，对于树中的每个节点 X，它的左子树中所有项的值小于 X 中的项，而它右子树中所有的项的值大于 X 中的项。
 
+```java
+private static class BinaryNode<AnyType>{
+    //Constructors
+    BinaryNode(AnyType theElement){
+        this(theElement, null, null);
+    }
+    BinaryNOde(AnyType theElement, BinaryNode<AnyType>lt, BinaryNode<AnyType>rt){
+        element = theElement;
+        left = lt;
+        right = rt;
+    }
+    AnyType element;	//The data in the node
+    BinaryNode<AnyType> left;	//left child
+    BinaryNode<AnyType> right;	//right child
+}
+```
 
+```java
+public class BinarySearchTree<AnyType extends Comparable<? super AnyType>>{
+    private static class BinaryNode<AnyType>{}
+    private BinaryNode<AnyType> root;
+    public BinarySearchTree(){
+        root = null;
+    }
+    public void makeEmpty(){
+        root = null;
+    }
+    public boolean isEmpty(){
+        return root == null;
+    }
+    public boolean contains(AnyType x){
+        return contains(x, root);
+    }
+    public ANyType findMin(){
+        if(isEmpty()) throw new UnderflowException();
+        return findMin(root).element;
+    }
+    public ANyType findMax(){
+        if(isEmpty()) throw new UnderflowException();
+        return findMax(root).element;
+    }
+    public void insert(AnyType x){
+        root = insert(x, root);
+    }
+    public void remove(AnyType x){
+        root = remove(x, root);
+    }
+    public void printTree(){}
+    private boolean contains(AnyType x, BinarryNode<AnyType> t){}
+    private BinaryNOde<AnyType> findMin(BinaryNode<AnyType> t){}
+    private BinaryNOde<AnyType> findMax(BinaryNode<AnyType> t){}
+    private BinaryNode<AnyType> insert(AnyType x, BinaryNode<AnyType> t){}
+    private BinaryNode<AnyType> remove(AnyType x, BinaryNode<AnyType> t){}
+    private void printTree(BinaryNode<AnyType> t){}
+}
+```
 
+### 4.3.1 contains 方法
 
+```java
+private bollean contains(AnyType x, BinaryNOde<AnyType> t){
+    if(t == null)
+        return false;
+    int compareResult = x.compareTo(t.element);
+    if(compateResult<0)
+        return contains(x, t.left);
+    else if(compateResult>0)
+        return contains(x, t.right);
+    else
+        return true;
+}
+```
 
+#### （？？？没看懂）需要使用一个函数对象而不是要求这些项是 Comparable 的。
 
+```java
+public class BinarySearchTree<AnyType>{
+    private BinaryNode<AnyType> root;
+    private Comparator<? super ANyType> cmp;
+    public BinarySearchTree(){
+        this(null);
+    }
+    public BinarySearchTree(Comparator<? super AnyType> c){
+        root = null;
+        cmp = c;
+    }
+    private int myCompare(AnyType lhs, ANyType rhs){
+        if(cmp != null)
+            return cmp.compare(lhs, rhs);
+        else
+            return ((Comparable)lhs.compareTo(rhs));
+    }
+    private bollean contains(AnyType x, BinaryNOde<AnyType> t){
+    if(t == null)
+        return false;
+    int compareResult = myCompare(x, t.element);
+    if(compateResult<0)
+        return contains(x, t.left);
+    else if(compateResult>0)
+        return contains(x, t.right);
+    else
+        return true;
+    } 
+}
+```
 
+### 4.3.2 findMin 方法和 findMax 方法
 
+递归和非递归两种方式
 
+```java
+private BinaryNode<AnyType> findMin(BinaryNode<AnyType> t){
+    if(t == null)
+        return null;
+    else if(t.left == null)
+        return t;
+    return findMin(t.left);
+}
+private BinaryNode<AnyType> findMax(BinaryNode<AnyType> t){
+    while(t!=null)
+        t=t.right;
+    return t;
+}
+```
 
+### 4.3.3 insert 方法
 
+将元素插入到二叉树的例程
 
+```java
+private BinaryNode<AnyType> insert(AnyType x, BinaryNode<AnyType> t){
+    if(t == null)
+        return new BinaryNode<AnyType>(x, null, null);
+    int compareResult  = x.compareTo(t.element);
+    if(compareResult<0)
+        t.left = insert(x, t.left);
+    else if (compareResult>0)
+        t.right = insert(x, t.right);
+    else
+        //Duplicate; do nothing
+    return t;
+}
+```
 
+### 4.3.4 remove 方法
 
+一般的删除策略是用其右子树的最小的数据代替该节点的数据并递归地删除那个节点。
 
+如下程序完成删除工作，但是效率并不高，因为它沿该树进行两趟搜索以查找和删除右子树中最小的节点。通过写一个特殊的 removeMin 方法可以容易地改变这种效率不高的缺点，这里略去只是为了简明。
 
+```java
+private BinaryNode<AnyType> remove(AnyType x, BinaryNode<AnyType> t){
+    if(t == null)
+        return t; //Item not found; do nothing
+    int compareResult = x.compareTo(t.element);
+    if(compareResult<0)
+        t.left = remove(x, t.left)
+    else if(compareResult>0)
+        t.right = remove(x, t.right);
+    else if(t.left!=null && t.right!=null){//Two children
+        t.element = findMin(t.right).element;
+        t.right = remove(t.element, t.right);
+    }
+    else
+        t = (t.left!=null)?t.left:t.right;
+    return t;
+}
+```
 
+### 4.3.5 平均情况分析
 
+证明，假设所有的插入序列都是等可能的，则书的所有节点的平均深度为 O（log N）。
+
+我没看。。。
+
+## 4.4 AVL 树
 
 
 
