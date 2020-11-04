@@ -1,3 +1,5 @@
+
+
 # 数据结构与算法分析_Java语言描述
 
 # 第一章 引论
@@ -760,19 +762,112 @@ private BinaryNode<AnyType> remove(AnyType x, BinaryNode<AnyType> t){
 
 ## 4.4 AVL 树
 
+> AVL 树是带有平衡条件的二叉树。这个平衡条件必须要容易保持，而且保证树的深度必须是O（log N）。
+>
+> 一棵 AVL 树是其每个节点的左子树和右子树的高度最多差 1 的二叉查找树（空树的高度定义为 -1）。可以证明，粗略地说，一个 AVL 树的高度最多为 1.44 log（N+2）-1.328，但是实际上的高度只略大于 log N。
+>
+> 在高度为 h 的 AVL 树中，最少节点数 S( h )=S( h-1 )+S( h-2 )+1。函数 S（h）与斐波纳契数密切相关，由此退出上面提到的关于 AVL 树的高度的界。
+>
+> 插入操作可能破坏平衡特性，这总可以通过**旋转**来修正。
 
+更新平衡信息：找到第一个破坏平衡条件的节点，重新平衡这棵树。
 
+平衡节点叫 α。由于任意节点最多有两个儿子，因此出现高度不平衡就需要 α 点的两颗子树的高度差 2。不平衡四种情况：
 
+1. 对 α 的左儿子的左子树进行一次插入
+2. 对 α 的左儿子的右子树进行一次插入
+3. 对 α 的右儿子的左子树进行一次插入
+4. 对 α 的右儿子的右子树进行一次插入
 
+1 和 4 对称，2 和 3 对称。两种情况。第一种情况（外面，左-左或右-右）**单旋转**，第二种情况（内部，左-右或右-左）**双旋转**。
 
+### 4.4.1 单旋转
 
+注意：树的其余部分必须被告知该变化。
 
+![单旋转示例](img/数据结构预算法分析_Java语言描述.assets/单旋转示例.png)
 
+### 4.4.2 双旋转
 
+AVL 树的节点声明：
 
+```java
+//AVL 树的节点声明
+private static class AvlNode<AnyType>{
+    //Constructors
+    AvlNode(AnyType theElement){
+        this(theElement, null, null);
+    }
+    AvlNode(AnyType theElement, AvlNode<AnyType> lt, AvlNode<AnyType> rt){
+        element = theElement;
+        left = lt;
+        right = rt;
+        height = 0;
+    }
+    AnyType element;		//The data in the node
+    AvlNode<AnyType> left;	//Left child
+    AvlNode<AnyType> right;	//Right child
+    int height;				//Height
+    private int height(AvlNode<AnyType> t){
+        return t == null?-1:t.height;
+    }
+}
+```
 
+向 AVL 树的插入历程：
 
+```java
+//向 AVL 树的插入历程
+private AvlNode<AnyType> insert(AnyType x, AvlNode<AnyType> t){
+    if(t == null)
+        return new AvlNode(x, null, null);
+    int compareResult = compare(x, t.element);
+    if(compareResult<0){//左
+        t.left = insert(x, t.left);
+        if(height(t.left)-height(t.right) == 2){//平衡被破坏
+            if(compare(x, t.left.element)<0){//左左 单旋转
+                t = rotateWithLeftChild(t);
+            }else {//左右 双旋转
+                t = doubleWithLeftChild(t);
+            }
+        }
+    }else if(compareResult>0){//右
+        t.right = insert(x, t.right);
+        if(height(t.right)-height(t.left) == 2){//平衡被破坏
+			if(compare(x, t.right.element)<0){//右右 单旋转
+                t = rotateWithRightChild(t);
+            }else {//右左 双旋转
+                t = doubleWithRightChild(t);
+            }	            
+        }
+    }else{
+        ;//Duplicate; do nothing
+    }
+    t.heitht = Math.max(height(t.left),height(t.right))+1;
+    return t;
+}
+```
 
+执行单旋转的历程：
+
+```java
+//执行单旋转的历程 左左
+private AvlNode<AnyType> rotateWithLeftChild(AvlNode<AnyType> k2){
+    AvlNode<AnyType> k1 = k2.left;
+    k2.left = k1.right;
+    k1.right = k2;
+    k2.heihgt = Math.max(height(k2.left), height(k2.right))+1;
+    k1.heihgt = Math.max(height(k1.left), height(k1.right))+1;
+    return k1;
+}
+```
+
+执行双旋转的例程：
+
+```java
+//执行双旋转的例程 左右
+
+```
 
 
 
