@@ -783,6 +783,9 @@ private BinaryNode<AnyType> remove(AnyType x, BinaryNode<AnyType> t){
 
 ### 4.4.1 单旋转
 
+- 左左插入，向右单旋转。
+- 右右插入，向左单旋转。
+
 注意：树的其余部分必须被告知该变化。
 
 ![单旋转示例](img/数据结构预算法分析_Java语言描述.assets/单旋转示例.png)
@@ -825,7 +828,7 @@ private AvlNode<AnyType> insert(AnyType x, AvlNode<AnyType> t){
     if(compareResult<0){//左
         t.left = insert(x, t.left);
         if(height(t.left)-height(t.right) == 2){//平衡被破坏
-            if(compare(x, t.left.element)<0){//左左 单旋转
+            if(compare(x, t.left.element)<0){//左左插入 向右单旋转
                 t = rotateWithLeftChild(t);
             }else {//左右 双旋转
                 t = doubleWithLeftChild(t);
@@ -834,7 +837,7 @@ private AvlNode<AnyType> insert(AnyType x, AvlNode<AnyType> t){
     }else if(compareResult>0){//右
         t.right = insert(x, t.right);
         if(height(t.right)-height(t.left) == 2){//平衡被破坏
-			if(compare(x, t.right.element)<0){//右右 单旋转
+			if(compare(x, t.right.element)<0){//右右插入 向左单旋转
                 t = rotateWithRightChild(t);
             }else {//右左 双旋转
                 t = doubleWithRightChild(t);
@@ -851,7 +854,7 @@ private AvlNode<AnyType> insert(AnyType x, AvlNode<AnyType> t){
 执行单旋转的历程：
 
 ```java
-//执行单旋转的历程 左左
+//执行单旋转的历程 左左插入，向右单旋转。
 private AvlNode<AnyType> rotateWithLeftChild(AvlNode<AnyType> k2){
     AvlNode<AnyType> k1 = k2.left;
     k2.left = k1.right;
@@ -862,14 +865,38 @@ private AvlNode<AnyType> rotateWithLeftChild(AvlNode<AnyType> k2){
 }
 ```
 
+```java
+//执行单旋转的历程 右右插入，向左单旋转。
+private AvlNode<AnyType> rotateWithRightChild(AvlNode<AnyType> k1){
+    AvlNode<AnyType> k2 = k1.right;
+    k1.right = k2.left;
+    k2.left = k1;
+    k1.height = Math.max(height(k1.left), height(k1.right))+1;
+    k2.heihgt = Math.max(height(k2.left), height(k2.right))+1;
+    return k2;
+}
+```
+
 执行双旋转的例程：
 
 ```java
-//执行双旋转的例程 左右
+//执行双旋转的例程 左右插入 左儿子先左旋转自己后右旋转
+private AvlNode<AnyType> doubleWithLeftChild(AvlNode<AnyTyp> k3){
+    k3.left = rotateWithRightChild(k3.left);
+    return rotateWithLeftChild(k3);
+}
 
 ```
 
+```java
+//执行双旋转的例程 右左插入 右儿子先右旋转自己后左旋转
+private AvlNode<AnyType> doubleWithLeftChild(AvlNode<AnyTyp> k1){
+    k1.right = rotateWithLeftChild(k1.right);
+    return rotateWithRightChild(k1);
+}
+```
 
+## 4.5 伸展树
 
 
 
