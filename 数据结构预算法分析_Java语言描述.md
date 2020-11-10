@@ -997,9 +997,63 @@ Java 要求 TreeSet 和 TreeMap 支持基本的 add、remove 和 contains 操作
 
 ### 4.8.4 使用多个映射的例
 
+计算包含单词作为关键字及只有一个字母不同的一列单词作为值的映射函数。对一个 89000 单词的词典只运行四秒钟。
 
+```java
+//检测两个单词是否只在一个字幕上不同
+private static boolean oneCharDff(String word1, String word2){
+    if(word1.length() != word2.length())
+        return false;
+    int diffs = 0;
+    for(int i = 0; i < word1.length(); i++){
+        if(word1.charAt(i) != word1.charAt(i))
+            if(++diffs > 1)
+                return false;
+    }
+    return true;
+}
+//更新Map对象
+private static <KeyType> void update(Map<KeyType, List<String>> m, KeyType key, String value){
+    List<String> lst = m.get(key);
+    if(lst = null){
+        lst = new ArrayList<String>();
+        m.put(key, lst);
+    }
+    lst.add(value);
+}
+//用 TreeMap 实现一个复杂度为 O(N log N)的算法
+public static Map<String, List<String>> computeAdjacentWords(List<String> words){
+    Map<String, List<String>> adjWords = new TreeMap<String, List<String>>();
+    Map<String, List<String>> wordsByLength = new TreeMap<Integer, List<String>>();
+    //根据单词字母数分组，key 为单词长度，value 为该长度的单词list
+    for(String w : words)
+        update(wordsByLength, w.length(), w);
+    //从每组开始分
+    for(Map.Entry<Integer, List<String>> entry : wordsByLength.entrySet()){
+        List<String> groupWords = entry.getValue();
+        int groupNum = entry.getKey();
+        //每个位置，从第一个字母到最后一个字母
+        for(int i = 0; i < groupNum; I++){
+            //删除第i个字母，将key和value存入map
+            Map<String, List<String>> repToWord = new TreeMap<String, List<String>>();
+            for(String str : goupsWords){
+                string rep = str.substring(0, i) + str.substring(i+1);
+                update(repToWord, rep, str);
+            }
+            //分组，在去掉一个字母相同的单词list中，生成最终的map
+            for(List<String> wordClique : repToWord.values())
+                if(wordClique.size() >= 2)
+                    for(String s1 : wordClique)
+                        for(String s2 : wordClique)
+                            if(s1 != s2)
+                                update(adjWords, s1, s2);
+        }
+    }
+    return adjWords;
+}
+```
 
-
+# 第五章 散列
 
 
 
