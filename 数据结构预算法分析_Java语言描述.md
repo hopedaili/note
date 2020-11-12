@@ -1055,17 +1055,164 @@ public static Map<String, List<String>> computeAdjacentWords(List<String> words)
 
 # 第五章 散列
 
+散列表的实现常常叫做**散列**（hashing）。散列是一种用于以常数平均时间执行插入、删除和查找的技术。但是，哪些需要元素之间任意排序信息的树操作将不会得到有效的支持。
 
+## 5.1 一般想法
 
+理想的散列表数据结构是一个包含一些项（item）的具有固定大小的数组。通常，查找是对项的某个部分进行的，这部分叫做**关键字**（key）。表的大小记作 TableSize。每个关键字被映射到从 0 到 TableSize-1 这个范围中的某个数，并且被放到适当的单元中。这个映射就叫做散列函数（hash function）。这就是散列的基本想法。剩下的就是选择一个函数，决定当两个关键字散列到同一个值的时候（冲突（collision））应该做什么以及如何确定散列表的大小。
 
+## 5.2 散列函数
 
+如果输入的关键字是整数，则一般合理的方法就是直接返回 key mod tablesize。表的大小通常是素数。
 
+通常，关键字是字符串。
 
+一种方法是把字符串中字符的 ASCII 码（或 Unicode 码）值加起来：
 
+```java
+//表很大，函数将不会很好地分配关键字。假设 TableSize = 10007，并设所有关键字至多 8 个字符。散列函数只能假设值在 0-1016 之间。1016为127*8
+public static int hash(String key, int tableSize){
+    int hashVal = 0;
+    for(int i = 0; i < key.length(); i++){
+        hashVal += key.charAt(i);
+    }
+    return hashVal % tableSize;
+}
+```
 
+另一个散列函数：
 
+```java
+//假设 key 至少有 3 个字符。27 代表26个英文字母外加一个空格的个数，729 为 27 的平方。该函数只考察签单个字符，如果它们是随机的，表大小还是 10007，会得到一个合理地均衡分布。但是前三个字母的组合不是随机的。
+public static int hash(String key, int tableSize){
+    return (key.charAt(0) + 27*key.charAt(1) + 729*key.charAt(2)) % tableSize;
+}
+```
 
+一个好的散列函数：
 
+$\sum_{i=0}^{SeySize-1}Key[SeySize-i-1]*37^i$
+
+这个散列函数利用到事实：允许溢出
+
+```java
+//
+public static int hsah(String key, int tableSize){
+    int hashVal = 0;
+    for(int i = 0; i < key.length(); i++){
+        hashVal += 37*hashVal + key.charAt(i);
+    }
+    hashVal %= tableSize;
+    if(hashVal < 0)
+        hashVal += tableSize;
+    return hashVal;
+}
+```
+
+解决冲突的两种简单方法：分离链接法和开放定址法。
+
+## 5.3 分离链接法
+
+将散列到同一个值的所有元素保留到一个表中。
+
+```java
+//分离链接散列表的类架构
+public class SeparateChainingHashTable<AnyType>{
+    //无参构造
+    public SeparateChainingHashTable(){
+        this(DEFAULT_TABLE_SIZE);
+    }
+    //有参构造
+    public SeparateChainingHashTable(int size){
+        theLists = new LinkedList[nextPrime(size)];
+        for(int i = 0; i < theLists.length; i++ )
+            theLists[i] = new LinkedList<AnyType>();
+    }
+    public void insert(AnyType x){
+        
+    }
+    public void remove(AnyType x){
+        
+    }
+    public boolean contains(AnyType x){
+        
+    }
+    public void makeEmpty(){
+        for(int i = 0; i < theLists.length; i++)
+            theLists[i].clear();
+        theSize = 0;
+    }
+    
+    private static final int DEFAULT_TABLE_SIZE = 101;
+    private List<AnyType> theLists[];
+    private int currentSize;
+    
+    private void rehash(){
+        
+    }
+    private int myhash(AnyType x){
+        int hashVal = x.hashCode();
+        hashVal %= theLists.length;
+        if(hashVal < 0)
+            hashVal += theLists.length;
+        return hashVal;
+    }
+    //求至少等于n的质数
+    private static int nextPrime(int n){
+        if(n%2 == 0)
+            n++;
+        for(; !isPrime(n); n+=2){}
+        return n;
+    }
+    //判断一个数是否是质数
+    private static boolean isPrime(int n){
+        if(n == 2 || n == 3)
+            return true;
+        if(n == 1 || n%2 == 0)
+            return false;
+        for(int i = 3; i*i <= n; i+=2){
+            if(n%i == 0)
+                return false;
+        }
+        return true;
+    }
+```
+
+本章的散列表只对遵守确定协议的那些对象工作。这些对象必须提供适当的 equals 方法和返回一个 int 型量的 hashCode 方法，此时，散列表把这个 int 型量通过 myHash 转成适当的数组下标。
+
+```java
+private int myhash(AnyType x){
+    int hashVal = x.hashCode();
+    hashVal %= theLists.length;
+    if(hashVal < 0)
+        hashVal += theLists.length;
+    return hashVal;
+}
+```
+
+可以放在一个散列表中的 Employee 类的例子：
+
+```java
+public class Employee{
+    public boolean equals(Object rhs){
+        return (rhs instanceof Empoyee && name.equals(((Employee)rhs).name));
+    }
+    public int hashCode(){
+        return name.hashCode();
+    }
+    private String name;
+    private double salary;
+    private int seniority;
+    
+    // Additional fields and methods
+}
+```
+
+分离链接散列表的构造方法和 makeEmpty 方法：
+
+```java
+
+```
 
 
 
