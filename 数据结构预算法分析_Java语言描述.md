@@ -1118,6 +1118,11 @@ public static int hsah(String key, int tableSize){
 ```java
 //分离链接散列表的类架构
 public class SeparateChainingHashTable<AnyType>{
+    
+    private static final int DEFAULT_TABLE_SIZE = 101;
+    private List<AnyType> theLists[];
+    private int currentSize;
+    
     //无参构造
     public SeparateChainingHashTable(){
         this(DEFAULT_TABLE_SIZE);
@@ -1128,28 +1133,7 @@ public class SeparateChainingHashTable<AnyType>{
         for(int i = 0; i < theLists.length; i++ )
             theLists[i] = new LinkedList<AnyType>();
     }
-    public void insert(AnyType x){
-        
-    }
-    public void remove(AnyType x){
-        
-    }
-    public boolean contains(AnyType x){
-        
-    }
-    public void makeEmpty(){
-        for(int i = 0; i < theLists.length; i++)
-            theLists[i].clear();
-        theSize = 0;
-    }
-    
-    private static final int DEFAULT_TABLE_SIZE = 101;
-    private List<AnyType> theLists[];
-    private int currentSize;
-    
-    private void rehash(){
-        
-    }
+    //散列函数
     private int myhash(AnyType x){
         int hashVal = x.hashCode();
         hashVal %= theLists.length;
@@ -1157,6 +1141,41 @@ public class SeparateChainingHashTable<AnyType>{
             hashVal += theLists.length;
         return hashVal;
     }
+    //将散列表置空
+    public void makeEmpty(){
+        for(int i = 0; i < theLists.length; i++)
+            theLists[i].clear();
+        theSize = 0;
+    }
+    
+    public boolean contains(AnyType x){
+        List<AnyType> whichList = theLists[myhash(x)];
+        return whichList.contains(x);
+    }
+    
+    public void insert(AnyType x){
+        List<AnyType> whichList = theLists[myhash(x)];
+        if(!whichList.contains(x)){
+            whichList.add(x);
+            //Rehash
+            if(++currentSize > theLists.length)
+                rehash();
+        }
+    }
+    
+    public void remove(AnyType x){
+        List<AnyType> whichList = theLists[myhash(x)];
+        if(!whichList.contains(x)){
+            whichList.remove(x);
+            currentSize--;
+        }
+    }
+    
+    
+    private void rehash(){
+        
+    }
+    
     //求至少等于n的质数
     private static int nextPrime(int n){
         if(n%2 == 0)
@@ -1208,21 +1227,29 @@ public class Employee{
 }
 ```
 
-分离链接散列表的构造方法和 makeEmpty 方法：
+我们定义散装因子 λ 为散列表中的元素个数对该表大小的比。散列表的大小实际并不重要，而填装因子才是重要的。分离链接散列法的一般法则是使得表的大小与预料的元素各处大致相等（换句话说，让  λ≈1）。
 
-```java
+## 5.4 不用链表的散列表
 
-```
+分离链接散列算法的缺点是使用一些链表。由于给新单元分配地址需要时间（特别是在其他语言中），因此导致算法的速度有些缓慢，同时算法实际上还要求对第二种数据结构的实现。
 
+另有一种不用链表解决冲去的方法是常事另外一些单元，直到找出空的单元为止。单元 $h_0(x)$, $h_1(x)$, $h_2(x)$,···相继被试选，其中 $h_i(x)=(hash(x)+f(i))mod\ \ \ TableSize$  ，且 f（0）= 0。函数 f 是冲突解决方法。因为所有的数据都要置入表内，所以这种解决方案所需要的表要比分离链接散列的表大。一般说来，对于不是用分离链接的散列表来说，其填装因子应该低于 λ=0.5。我们把这样的表叫做探测散列表。
 
+### 5.4.1 线性探测法
 
+函数 f 是 i 的线性函数，典型的情形是 f（i） = i。
 
+一次聚集（primary clustering）。
 
+### 5.4.2 平方探测法
 
+平方探测是消除线性探测中一次聚集问题的冲突解决方法。平方探测就是冲突函数为二次的探测方法。流行的选择是 $f(x)=i^2$。
 
+一旦表被填充超过一半，当表的大小不是素数时甚至在被填充一半之前，就不能保证一次找到空的单元了。
 
+可以证明，使用平方探测，并且表的大小是素数，当表至少有一半是空的时候，总能够插入一个新的元素。
 
-
+在探测散列表中标准的删除操作不能执行，因为相应的单元可能已经引起过冲突，元素绕过它存在了别处。因此，探测散列表需要懒惰删除，不过在这种情况下实际上并不存在所意味的懒惰。
 
 
 
