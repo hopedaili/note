@@ -1251,13 +1251,109 @@ public class Employee{
 
 在探测散列表中标准的删除操作不能执行，因为相应的单元可能已经引起过冲突，元素绕过它存在了别处。因此，探测散列表需要懒惰删除，不过在这种情况下实际上并不存在所意味的懒惰。
 
+实现探测散列表需要的类架构。这里，不用链表数组，使用散列表项单元：
 
+```java
+public class QuadraticProbingHashTable<AnyType>{
+    //无参构造
+    public QuadraticProbingHashTable(){
+    	this(DEFAULT_TABLE_SIZE);
+    }
+    //有参构造
+    public QuadraticProbingHashTable(int size){
+    	allocateArray(size);
+        makeEmpty();
+    }
+    //使哈希表在逻辑上为空
+    public void makeEmpty(){
+    	currentSize = 0;
+        for(int i = 0; i<array.length; i++)
+            array[i] = null;
+    }
+    
+    public boolean contains(AnyType x){
+    	int currentPos = findPos(x);
+        return isActive(currentPos);
+    }
+    
+    public void insert(AnyType x){
+    	int currentPods = findPods(x);
+        if(isActive(currentPods))
+            return;
+        array[currentPods] = new HashEntry(x, true);
+        if(++currentSize > array.length/2)
+            rehash();
+    }
+    
+    public void remove(AnyType x){
+    	int currentPods = findPods(x);
+        if(isActive(currentPods))
+            array[currentPods].isActive = false;
+    }
+    
+    private static class HashEntry<AnyType>{
+    	public AnyType element; // the element
+        public boolean isActive; // false if marked deleted
+        public HashEntry(AnyType e){
+        	this(e, true);
+        }
+        public HashEntry(AnyType e, boolean i){
+            element = e;
+            isActive = i;
+        }
+    }
+    
+    private static final int DEFAULT_TABLE_SIZE = 11;
+    private HashEntry<AnyType> array[]; // The array of elements
+    private int currentSize;
+    
+    private void allocateArray(int arraySize){
+    	array = new HashEntry[arraySize];
+    }
+    
+    private boolean isActive(int currentPos){
+    	return array[currentPos] != null && array[currentPos].isActive; 
+    }
+    
+    private int findPos(AnyType x){
+    	int offset = 1;
+        int currentPods = myhash(x);
+        while(array[currentPods]!=null && !array[currentPods].element.equals(x)){
+            currentPods += offset; //加上offset跳到下一个位置
+            offset += 2;	//偏移量 0 1 4 9 16 差距是 1 3 5 7
+            if(currentPods >= array.length)
+                currentPods -= array.length;
+        }
+        return currentPods;
+    }
+    
+    private void rehash(){
+    	
+    }
+    
+    private int myhash(AnyType x){
+    
+    }
+    
+    private static int nextPrime(int n){
+    	
+    }
+    
+    private static boolean isPrime(int n){
+    	
+    }
+}
+```
 
+平方探测排除了**一次聚集**，但是产生了**二次聚集**（单列到同一位置上的那些元素将探测相同的备选单元）。每次查找，一般要引起另外少于一半的探测。排除这个缺憾，需要付出计算一个附加的散列函数。
 
+### 5.4.3 双散列
 
+双散列（double hashing）。一种流行的选择是 $f(i) = i·hash_2(x)$。
 
+函数选择很重要；保证所有的单元都能被检测到也很重要（tableSize 为素数）。例如 $hash_2 = R-(x mod R)$。
 
-
+## 5.5 再散列
 
 
 
