@@ -1355,19 +1355,83 @@ public class QuadraticProbingHashTable<AnyType>{
 
 ## 5.5 再散列
 
+再散列：建立新表，扫描原来的表，把数据全部插入到新表中。
 
+实现方式：
 
+1. 表满到一半时。
+2. 表插入失败时。
+3. 途中策略：当散列表达到某一个填装因子时进行再散列（比较好）。
 
+对分离链接散列表和探测散列表的再散列：
 
+```java
+//终于要出场的 rehash
+private void rehash(){
+	HashEntry<AnyType> oldArray[] = array;
+    allocateArray(nextPrime(2*oldArray.length));
+    currentSize = 0;
+    for(int i = 0; i < oldArray.length; i++){
+    	if(oldArray[i]!=null && oldArray[i].element.isActive)
+            insert(oldArray[i].element);
+    }
+}
+private void rehash(){
+	List<AnyType> oldList[] = theLists;
+    theLists = new List[nextPrime(2*oldArray.length)];
+    for(int j = 0; j< theLists.length; j++)
+        theLists[j] = new LiinkedList<AnyType>();
+    currentSize = 0;
+    for(int i = 0; i<oldLists.length; i++)
+        for(AnyType item : oldLists[i])
+            insert(item);
+}
+```
 
+## 5.6 标准库中的散列表
 
+标准库包括 Set 和 Map 的散列表的实现，即 HashSet 类和 HashMap 类。HashSet中的项（或HashSet中的关键字）必须提供 equals 方法和 HashCode 方法。HashSet 和 HashMap 通常是用分离链接散列实现的。
 
+HashMap 的性能常常优于 TreeMap 的性能。因此，在 HashMap 或 TreeMap 可以接受的情况下，更可取的方法是：使用接口类型 Map 进行变量的声明，然后将 TreeMap 的实例变成 HashMap 的实例并进行计时测试。
 
+在 Java 中，能够被合理地插入到一个 HashSet 中去或是所谓关键字被插入到 HashMap 中去的那些类库类型已经被定义了 equals 和 HashCode 方法。
 
+散列表操作中费时多的部分就是计算 hashCode 方法，每个String 类对象内部都存储他的hashCode 值。该值初始值为 0，但若 HashCode 被调用，那么这个值就会被记住。因此，如果hashCode 对同一个String 对象被第二次计算，可以避免昂贵的重新计算。这个技巧叫做**闪存散列代码**，并且表示另一种经典的是空交换。
 
+```java
+public final class String{
+	public int hashCode(){
+    	if(hash != 0)
+            return hash;
+        for(int i = 0; i < length(); i++;)
+            hash = hash * 31 + (int)charAt(i);
+        return hash;
+    }
+    private int hash = 0;
+}
+```
 
+## 5.7 可扩散列
 
+**可扩散列**（extendible hashing），它使得用两次磁盘访问执行一次查找。插入操作也需要很少的磁盘访问。
 
+···
+
+# 第六章 优先队列（堆）
+
+优先队列（priority queue）。
+
+## 6.1 模型
+
+优先队列是允许至少下列两种操作的数据结构：insert（插入），它的作用是显而易见的；以及 deleteMin（删除最小者），他的工作是找出、返回并删除优先队列中最小元素。insert 操作等价于 enqueue（入队），而 deleteMin 则是队列运算 dequeue（出队）在有限队列中的等价操作。
+
+## 6.2 一些简单的实现
+
+## 6.3 二叉堆
+
+二叉堆（binary heap）。
+
+## 6.3.1 结构性质
 
 
 
