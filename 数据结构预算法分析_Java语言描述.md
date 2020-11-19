@@ -1433,15 +1433,81 @@ public final class String{
 
 ## 6.3.1 结构性质
 
+堆是一颗被完全填满的二叉树，有可能的例外是在底层，底层上的元素从左到右填入。这样的树称为完全二叉树（complete binary tree）。
 
+容易证明，一颗高为 h 的完全二叉树有 $2^h$ 到 $2^{h+1}-1$ 个节点。这意味着完全二叉树的高是 log N。
 
+完全二叉树可以用数组表示。数组下标从 1 开始，对于数组中任意位置 i 上的元素，其左儿子在位置 2i 上，右儿子在左儿子后的单元（2i + 1）上，它的父亲则在位置 i/2 上。这种实现方法唯一的问题在于，最大的堆大小需要事先估计，但一般这并不成问题（而且如果需要，我们可以重新调整大小）。
 
+```java
+//优先队列的类架构
+public class BinaryHeap<AnyType extends Comparable<? super AnyType>>{
+	public BinaryHeap(){
+    
+    }
+    
+    public BinaryHeap(int capacity){
+    	
+    }
+    
+    public BinaryHeap(AnyType items[]){
+    	
+    }
+    
+    public void insert(AnyType x){
+        if(currentSize == array.length-1)
+            enlargeArray(array.length*2+1);
+        
+    	int hole = ++currentSize;
+        for(; hole>1 && x.compareTo(array[hole/2])<0; hole/=2)
+            array[hole] = array[hole/2];
+        array[hole] = x;
+    }
+    
+    public AnyType findMin(){
+    	
+    }
+    
+    public AnyType deleteMin(){
+    	
+    }
+    
+    public boolean isEmpty(){
+    	
+    }
+    
+    public void makeEmpty(){
+    	
+    }
+    
+    private static final int DEFAULT_CAPACITY = 10;
+    private int currentSize;	//Number of elements in heap
+    private AnyType array[];	//The heap array
+    
+    private void percolateDown(int hole){
+    	
+    }
+    
+    private void buildHeap(){
+    	
+    }
+    
+    private void enlargArray(int newSize){
+    }
+}
+```
 
+### 6.3.2 堆序性质
 
+让操作快速执行的性质是堆序性质（heap-order property）。向快速找出最小元，最小元应在在根上。如果考虑任意子树也是应该一个堆，那么任意节点就应该小于它的所有后裔。
 
+### 6.3.3 基本的堆操作
 
+#### insert（插入）
 
+为将一个元素 X 插入到堆中，在下一个可用位置常见一个空穴，否则该堆将不是完全树。如果 X 可以放在该空穴中而并不破坏堆的序，那么插入完成。否认则我们把空穴的父节点上的元素移入该空穴中，空穴朝着根的方向上冒一步。继续该过程直到 X 能被放入空穴中为止。
 
+这种一般的策略叫做**上滤**（pcrcolate up）；新元素在堆中上滤直到赵如正确的位置。
 
 
 
