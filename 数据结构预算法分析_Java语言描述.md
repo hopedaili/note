@@ -1465,7 +1465,9 @@ public class BinaryHeap<AnyType extends Comparable<? super AnyType>>{
     }
     
     public AnyType findMin(){
-    	
+    	if(isEmpty())
+            throw new UnderflowException();
+        return array[1];
     }
     
     public AnyType deleteMin(){
@@ -1473,7 +1475,7 @@ public class BinaryHeap<AnyType extends Comparable<? super AnyType>>{
     }
     
     public boolean isEmpty(){
-    	
+    	return currentSize == 0;
     }
     
     public void makeEmpty(){
@@ -1509,7 +1511,11 @@ public class BinaryHeap<AnyType extends Comparable<? super AnyType>>{
 
 这种一般的策略叫做**上滤**（pcrcolate up）；新元素在堆中上滤直到赵如正确的位置。
 
+该插入方法优于普通交换，一个元素上滤 d 层，交换执行的赋值次数是 3d，而该插入方法只用到了 d+1 次赋值。
 
+#### deleteMin（删除最小元）
+
+下滤：将空穴的两个儿子中较小者移入空穴，把空穴向下推了一层，重复该步骤直到 X 可以被放入空穴中。
 
 
 
