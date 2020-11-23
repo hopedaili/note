@@ -1443,15 +1443,21 @@ public final class String{
 //优先队列的类架构
 public class BinaryHeap<AnyType extends Comparable<? super AnyType>>{
 	public BinaryHeap(){
-    
+    	this(DEFAULT_CAPACITY);
     }
     
     public BinaryHeap(int capacity){
-    	
+    	currentSize = 0;
+        array = (AnyType[]) new Coparable[capacity+1];
     }
     
     public BinaryHeap(AnyType items[]){
-    	
+    	currentSize = items.length;
+        array = (AnyType[])new Comparable[(currentSize+2)*11/10];
+        int i = 1;
+        for(AnyType item : items)
+            array[i++] = item;
+        buildHeap();
     }
     
     public void insert(AnyType x){
@@ -1463,7 +1469,7 @@ public class BinaryHeap<AnyType extends Comparable<? super AnyType>>{
             array[hole] = array[hole/2];
         array[hole] = x;
     }
-    
+    //寻找最小元（返回根）
     public AnyType findMin(){
     	if(isEmpty())
             throw new UnderflowException();
@@ -1471,30 +1477,53 @@ public class BinaryHeap<AnyType extends Comparable<? super AnyType>>{
     }
     
     public AnyType deleteMin(){
-    	
+    	if(isEmpty())
+            throw new UnderflowException();
+        
+        AnyType minItem = array[1];
+        array[1] = array[currentSize--];
+        percolateDown(1);
+        return minItem;
     }
     
     public boolean isEmpty(){
     	return currentSize == 0;
     }
-    
+    //逻辑置空
     public void makeEmpty(){
-    	
+    	currentSize = 0;
     }
     
     private static final int DEFAULT_CAPACITY = 10;
     private int currentSize;	//Number of elements in heap
     private AnyType array[];	//The heap array
-    
+    //在堆中向下渗透的内部方法
     private void percolateDown(int hole){
-    	
+    	int child;
+        AnyType tmp = array[hole];
+        for(; hole*2<=currentSize; hole=child){
+        	child = hole*2;
+            if(child!=currentSize && array[child+1].compareTo(array[child])<0)
+                child++;
+            if(array[child].compareTo(tmp)<0)
+                array[hole] = array[child];
+            else
+                break;
+        }
+        array[hole] = tmp;
     }
     
     private void buildHeap(){
-    	
+    	for(int i = currentSize/2; i>0; i--)
+            percolateDown;
     }
     
+    //扩容数组
     private void enlargArray(int newSize){
+        AnyType oldArray[] = array;
+        array = new (AnyType[])Comparable[newSize];
+        for(int i = 0; i<oldArray.length; i++)
+            array[i] = oldArray[i];
     }
 }
 ```
@@ -1517,7 +1546,35 @@ public class BinaryHeap<AnyType extends Comparable<? super AnyType>>{
 
 下滤：将空穴的两个儿子中较小者移入空穴，把空穴向下推了一层，重复该步骤直到 X 可以被放入空穴中。
 
+### ？？？ 6.3.4 其他的堆操作 
 
+假设通过某种其他方法得知每一个元素的位置，那么久有几种其他操作的开销变小。下述前三种操作均以对数最坏情形时间运行。
+
+#### decreaseKey（降低关键字的值）
+
+#### increaseKey（增加关键字的值）
+
+#### delete（删除）
+
+#### buildHeap（构建堆）
+
+定理 6.1 包含 $2^{h+1}-1$ 个节点、高为 h 的理想二叉树的节点的高度的和为 $2^{h+1}-1-(h+1)$。
+
+## 6.4 优先队列的应用
+
+### 6.4.1 选择问题
+
+### 6.4.2 事件模拟
+
+## 6.5 d-堆
+
+d-堆是二叉堆的简单推广，所有的节点都有 d 个儿子。
+
+d-堆比二叉堆浅，insert 操作的运行时间改进为 $O(log_dN)$ ，deleteMin 操作更费时。当优先队列太大而不能完全装入主存的时候，d-堆很有用。与 B 树大致相同的方式发挥。在实践中 4-堆可以胜过二叉堆。
+
+缺点：不能实施 find，合并（merge）两个堆是困难操作。存在方法使得一次 merge 操作的运行时间是 $O(logN)$。
+
+## 6.6 左式堆
 
 
 
