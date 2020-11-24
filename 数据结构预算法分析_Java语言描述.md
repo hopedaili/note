@@ -1431,7 +1431,7 @@ public final class String{
 
 二叉堆（binary heap）。
 
-## 6.3.1 结构性质
+### 6.3.1 结构性质
 
 堆是一颗被完全填满的二叉树，有可能的例外是在底层，底层上的元素从左到右填入。这样的树称为完全二叉树（complete binary tree）。
 
