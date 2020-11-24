@@ -1417,7 +1417,7 @@ public final class String{
 
 ···
 
-# 第六章 优先队列（堆）
+# 第六章 优先队列（堆）？？？
 
 优先队列（priority queue）。
 
@@ -1546,7 +1546,7 @@ public class BinaryHeap<AnyType extends Comparable<? super AnyType>>{
 
 下滤：将空穴的两个儿子中较小者移入空穴，把空穴向下推了一层，重复该步骤直到 X 可以被放入空穴中。
 
-### ？？？ 6.3.4 其他的堆操作 
+### 6.3.4 其他的堆操作 ？？？ 
 
 假设通过某种其他方法得知每一个元素的位置，那么久有几种其他操作的开销变小。下述前三种操作均以对数最坏情形时间运行。
 
@@ -1576,9 +1576,91 @@ d-堆比二叉堆浅，insert 操作的运行时间改进为 $O(log_dN)$ ，dele
 
 ## 6.6 左式堆
 
+### 6.6.1 左式堆性质
 
+把任一节点 X 的零路径长（null path length）npl（x）定义为从 X 到一个不具有两个儿子的节点的最短路径的长。具有 0 个或一个儿子的节点的 npl 为 0，从而 npl（null）=-1。
 
+任意节点的零路径长比它的各个儿子节点的零路径长的最小值大 1。
 
+左式堆性质：堆中每一个节点 X，左儿子的零路径长至少与右儿子的零路径长相等。
+
+定理 6.2    在右路径上有 r 个节点的左式树必然至少有 $2^r-1$ 个节点。
+
+N 个节点的左式树有一条右路径最多含有 $log(N+1)$ 个节点。对左式堆操作的一般思路是将所有的工作放到右路径上进行，它保证树深度短。唯一棘手部分在于，对右路径的 insert 和 merge 可能会破坏左式堆性质。事实上，恢复该性质是非常容易的。
+
+### 6.6.2 左式堆操作
+
+左式堆的基本操作是合并。插入只是合并的特殊情形。
+
+递归法：
+
+递归地将具有大的根植的堆与具有小的根植的堆的右子堆合并。合并后不是左式堆，左式的性质在跟楚被破坏。但其余部分是必然是左式的。因此交换gender左右儿子并更新路径长就可以了。
+
+左式堆类型声明：
+
+```java
+//左式堆类型声明
+public class LeftistHeap<AnyType extends Comparable<? Super AnyType>>{
+	public LeftistHeap(){
+    	root = null;
+    }
+    
+    public void merge(LeftistHeap<AnyType> rhs){
+    	
+    }
+    
+    public void insert(AnyType x){
+    	
+    }
+    
+    public AnyType findMin(){
+    
+    }
+    
+    public AnyType deleteMin(){
+    
+    }
+    
+    public boolean isEmpty(){
+    	return root == null;
+    }
+    
+    public void makeEmpty(){
+    	root = null;
+    }
+    
+    private static class Node<AnyType>{
+    	Node(AnyType theElement){
+        	this(theElement, null, null);
+        }
+        
+        Node(AnyType theElement, Node<AnyType>lt, Node<AnyType>rt){
+        	element = theElement;
+            left = lt;
+            right = rt;
+            npl = 0;
+        }
+        
+        AnyType element;
+        Node<AnyType> left;
+        Node<AnyType> right;
+        int npl;
+    }
+    
+    private Node<AnyType> root;
+    private Node<AnyType> merge(Node<AnyType>h1, Node<AnyType>h2){
+    	
+    }
+    private Node<AnyType> merge1(Node<AnyType>h1, Node<AnyType>h2){
+    	
+    }
+    private void swapChildren(Node<AnyType> t){
+    
+    }
+}
+```
+
+非递归法：
 
 
 
