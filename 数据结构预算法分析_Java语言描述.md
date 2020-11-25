@@ -1606,19 +1606,28 @@ public class LeftistHeap<AnyType extends Comparable<? Super AnyType>>{
     }
     
     public void merge(LeftistHeap<AnyType> rhs){
-    	
+    	if(this == rhs)
+            return;
+        root = merge(root, rhs.root);
+        rhs.root = null;
     }
     
     public void insert(AnyType x){
-    	
+    	root = merge(new Node<AnyType>(x), root);
     }
     
     public AnyType findMin(){
-    
+    	if(isEmpty())
+            throw new UnderflowException();
+        return root.element;
     }
     
     public AnyType deleteMin(){
-    
+    	if(isEmpty())
+            throw new UnderflowException();
+        AnyType minItem = root.element;
+        root = merge(root.left, root.right);
+        return minItem
     }
     
     public boolean isEmpty(){
@@ -1649,22 +1658,45 @@ public class LeftistHeap<AnyType extends Comparable<? Super AnyType>>{
     
     private Node<AnyType> root;
     private Node<AnyType> merge(Node<AnyType>h1, Node<AnyType>h2){
-    	
+    	if(h1 == null)
+            return h2;
+        if(h2 == null)
+            return h1;
+        if(h1.element.compareTo(h2.element) < 0)
+            return merge1(h1, h2);
+        else
+            return merge1(h2, h1);
     }
     private Node<AnyType> merge1(Node<AnyType>h1, Node<AnyType>h2){
-    	
+    	if(h1.left == null)
+            h1.left = h2;
+        else{
+        	h1.right = merge(h1.right, h2);
+            if(h1.left.npl < h1.right.npl)
+                swapChildren(h1);
+            h1.npl = h1.right.npl+1;
+        }
+        return h1;
     }
     private void swapChildren(Node<AnyType> t){
-    
+    	Node<AnyType> tmp = t.left;
+        t.left = t.right;
+        t.right = tmp;
     }
 }
 ```
 
 非递归法：
 
+没给出但是可证：递归过程和非递归过程的结果是相同的。
 
+## 6.7 斜堆
 
+斜堆（skew heap）是左式堆的自调节形式。斜堆是具有堆序的二叉树，但不存在对树的结构限制。任意节点的零路径长的信息都可以不在保留。斜堆的右路径在任何时刻都可以任意长，隐私多有操作的最坏运行时间均为O（N）。可以证明对任意 M 次连续操作，总的最坏情形运行时间是 O（M log N）。因此，斜堆每次操作的摊开销（amortized cost）为 O（log N）。
 
+对于左式堆，查看是否左儿子和右儿子满足左式堆结构性质，并在不满足该性质时将它们交换。对于斜堆，交换式无条件的，除那些右路径上所有节点的最大者不交换它的左右儿子的例外外，都要进行这种交换。
+
+## 6.8 二项队列
 
 
 
