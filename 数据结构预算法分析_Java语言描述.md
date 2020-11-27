@@ -1809,9 +1809,57 @@ Hibbard 增量，形如 1，3.7，$2^k-1$，在实践中（并且理论上）给
 
 ## 7.5 堆排序
 
+#### 堆排序的分析
 
+最坏的情况下堆排序最多使用 2N log N - O（N）次比较。
 
+**定理 7.5** 对 N 个互异项的随机排列进行堆序所用比较的平均次数为 2N log N - O（N log log N）。
 
+证明：
+
+懂的都懂
+
+堆排序：
+
+```java
+//返回左儿子下标
+private static int leftChild(int i){
+	return i*2+1;
+}
+//交换数组中两个元素
+private static void swapReferences(AnyType a[], int index1, int index2){
+	AnyType tmp = a[index1];
+    a[index1] = a[index2];
+    a[index2] = tmp;
+}
+//过滤（节点大于儿子）
+private static <AnyType extends Comparable<? super AnyType>> void percDown(AnyType a[], int i, int n){
+	AnyType tmp;
+    int child;
+    for(tmp = a[i]; leftChild(i)<n; i = child){
+        child = leftChild(i);
+    	if(child!=n-1 && a[child].compareTo(a[child+1]))
+            child++;
+        if(tmp.compareTo(a[child]))
+            a[i] = a[child];
+        else
+            break;
+    }
+    a[i] = tmp;
+}
+//堆排序
+public static <AnyType extends Comparable<? super AnyType>> void heapsort(AnyType a[]){
+	for(int i=a.length/2; i>=0; i--) //buildHeap
+        percDown(a, i, a.length);
+    for(int i = a.length-1; i>0; i--){
+    	swapReferences(a, 0, i);	//deleteMax
+        percDown(a, 0, i);		//剩余部分满足二叉堆属性
+    }
+}
+
+```
+
+## 7.6 归并排序
 
 
 
