@@ -1861,9 +1861,59 @@ public static <AnyType extends Comparable<? super AnyType>> void heapsort(AnyTyp
 
 ## 7.6 归并排序
 
+归并排序（mergesort）以 O（N log N）最坏情形时间运行，使用的比较次数几乎是最优的。他是递归算法一个好的实例。
 
+这个算法中基本的操作是合并两个已排序的表。基本合并算法是去除连个输入数组 A 和 B，一个输出数组 C，以及 3 个计数器 Actr、Bctr、Cctr，他们初始置于对应数组的开始端。A[Actr] 和 B[Btr] 中的较小者被拷贝到 C 中的下一个位置，相关的计数器相亲推进一步。当两个输入表有一个用完的时候，则将另一个表中剩余部分拷贝到 C 中。
 
+归并排序历程：
 
+```java
+//
+private static <AnyType extends Comparable<? super AnyType>> void mergeSort(AnyType a[], AnyType tmpArry[], int left, int right){
+	if(left < right){
+    	int center = (left+right)/2;
+        mergeSort(a, tmpArray, left, center);
+        mergeSort(a, tmpArry, center+1, right);
+        merge(a, tmpArry, left, center+1, right);
+    }
+}
+
+public static<AnyType extends Comparable<? super AnyType>> void mergeSort(AnyType a[]){
+	AnyType tmpAray[] = (AnyType[])new Comparable[a.length];
+    mergeSort(a, tmpArray, 0, a.length-1);
+}
+
+private static <AnyType extends Comparable<? super AnyType>> void merge(AnyType a[], AnyType tmpArry[], int leftPods, int rightPods, int rightEnd){
+	int tmpPods = leftPods;
+    int leftEnd = rightPods-1;
+    int numElements = rightRnd-leftPods+1;
+    while(leftPods<=leftEnd && rightPods<=rightEnd){
+    	if(a[leftPods].comparableTo(a[rightPods]))
+            tmpArray[tmpPods++] = a[leftPods++];
+        else
+            tmpArray[tmpPods++] = a[rightPods++];
+    }
+    while(leftPods<=leftEnd)
+        tmpArray[tmpPods++] = a[leftPods++];
+    while(rightPods<=rightEnd)
+        tmpArray[tmpPods++] = a[rightPods++];
+    for(int i = 0; i < numElements; i++, rightEnd--)
+        a[rightEnd] = tmpArray[rightEnd];
+    	
+}
+```
+
+#### 归并排序的分析
+
+略
+
+合并两个已排序的表用到线性附加内存。在整个算法中还要花费将数据拷贝到临时数组在拷贝回来这样一些附加的工作，明显减慢了排序速度。
+
+与其他 O（N log N）排序算法比较，归并排序的运行时间严重依赖于比较元素和在数组（以及临时数组）中异动元素的相对开销。这些开销与语言无关。
+
+在 Java 中，当执行一次泛型排序（使用 Comparator）时，进行一次元素比较可能是昂贵的（因为比较可能不容易被内嵌，从而动态调度的开销可能会减慢执行速度），但是异动元素则时省时的（因为他们是引用的赋值，而不是庞大对象的拷贝）。归并排序使用所有流行的排序算法中最少的比较次数，因此时使用 Java 的通用排序算法中的上好选择。事实上，他就是标准 Java 类库中泛型排序所使用的算法。
+
+## 7.7 快速排序
 
 
 
