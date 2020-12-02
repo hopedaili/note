@@ -1915,11 +1915,106 @@ private static <AnyType extends Comparable<? super AnyType>> void merge(AnyType 
 
 ## 7.7 快速排序
 
+快速排序（quicksort）的平均运行时间是 O（N log N）。该算法之所以特别快，主要是由于非常精炼的高度优化的内部循环。最坏的性能为 $O(N^2)$，经过少许努力可以是这种情形极难出现。通过将快速排序和堆排序结合，由于堆排序的 O（N log N）最坏运行时间，可以对几乎所有的输入都能达到快速排序的快速运行时间。
 
+和归并排序一样，快速排序也是一种分支的递归算法。将数组 S 排序的基本算法由下列简答的四步组成：
 
+1. 如果 S 中元素个数是 0 或 1，则返回。
+2. 取 S 中任一元素 v，称之为枢纽元（pivot）。
+3. 将 S - {v}（S 中其余元素）划分成两个不相交的集合：$s_1=\{x\in S-\{v\}|x\leq v\}$ 和$s_2=\{x\in S-\{v\}|x\geq v\}$。
+4. 返回{auicksort（$s_1$）后跟 v，继而返回 quicksort（$S_2$）}。
 
+由于对那些等于枢纽元的元素的处理上，第 3 步分的描述不是唯一的，因此这就成了一种设计决策。
 
+### 7.7.1 选取枢纽元
 
+#### 一种错误的方法
+
+通常的、无知的选择是将第一个元素用作枢纽元。另一种想法是选取前两个互异的关键字中的较大者作为枢纽元，这和只选取第一个元素作为枢纽元具有相同的害处。
+
+#### 一种安全的做法
+
+随机选取枢纽元。一般来说这种策略非常安全。
+
+#### 三数中值分割法（Median-of-Three Partitioning）
+
+一般做法是使用左端、右端和中心位置上的三个元素的中值作为枢纽元。
+
+### 7.7.2 分割策略
+
+第一步是通过枢纽元与最后的元素交换使得枢纽元离开要被分割的数据段。
+
+把所有小元素移到数组的左边而把所有大元素移到数组的右边。当 i 在 j 左边时，将 i 右移，移过那些小于枢纽元的元素，并将 j 左移，移过那些大于枢纽元的元素。当 i 和 j 停止时，i 指向一个大元素而 j 指向一个小元素。如果 i 在 j 的左边，那么将这两个元素互换。重复该过程知道 i 和 j 彼此交错为止。
+
+将枢纽元与 i 所指向的元素交换。
+
+对于等于枢纽元的元素（假设数组中所有元素都相等），i 和 j 都停止，当枢纽元被替代时，这种分割建立了两个几乎相等的子数组，此时运行时间为 O（N log N）。如果 i 和 j 都不停止，就应该有相应的程序防止 i 和 j 越出数组的端点，不进行交换的操作。，但正确的实现方法要把枢纽元交换到 i 最后到过的位置（倒数第二或者最后一位）。这将产生两个非常不均衡的子数组。运行时间为 O（$N^2$）。
+
+### 7.7.3 小树组
+
+对于很小的数组（$N\leq 20$），快速排序不如插入排序。通常的解决方法是对于小的数组不适用递归的快速排序，而使用诸如插入排序这样的堆小树组有效的排序算法。使用这重策略实际上可以节省大约 15%的运行时间（相对于不用截止的做法而自始至终使用快速排序时）。一种好的截至范围（cutoff range）是 N = 10。（5-20任意截止范围由有可能产生类似的结果）
+
+### 7.7.4 实际的快速排序例程
+
+快速排序的驱动程序：
+
+```java
+//插入排序
+public static <AnyType extends Comparable<? super AnyType>>void insertionSort(AnyType a[], int left, int right){
+	for(int i=left+1; i<=right; i++){
+    	AnyType tmp = a[i];
+        int j;
+        for(j=i; j>left&&tmp.compareTo(a[j-1]); j--)
+            a[j] = a[j-1];
+        a[j] = tmp;
+    }
+}
+//交换元素
+public static <AnyType> void swapReferences( AnyType [ ] a, int index1, int index2 ){
+    AnyType tmp = a[ index1 ];
+    a[ index1 ] = a[ index2 ];
+    a[ index2 ] = tmp;
+}
+//执行三数中值分割法的程序
+private static <AnyType extends Comparable<? super AnyType>> AnyType median3(AnyType a[], int left, int right){
+	int center = (left+right)/2;
+    if(a[center].compareTo(a[left])<0)
+        swapReferences(a, left, center);
+    if(a[right].compareTo(a[left])<0)
+        swapReferences(a, left, right);
+    if(a[right].compareTo(a[center])<0)
+        swapReferences(a, center, right);
+    //Place pivot at position right-1
+    swapReference(a, center, right-1);
+    return a[right-1];
+}
+private static int CUTOFF = 10;//最小值为2或者1，根据写法带不带等于号，保证数组个数最少为三个
+//快速排序主例程
+private static <AnyType extends Comparable<? super AnyType>> void quicksort(AnyType a[], int left, int right){
+	if(left+CUTOFF<=right){
+    	AnyType pivot = median3(a, left, right);
+        //开始分区
+        int i = left, j = right-1;
+        for(;;){
+        	while(a[++i].compareTo(pivot)){}
+            while(a[--j].compareTo(pivot)){}
+            if(i<j)
+                swapReference(a, i, j);
+            else
+                break;
+        }
+        swapReference(a, i, right-1);	//恢复枢纽元
+        quicksort(a, left, i-1);	//快排小于枢纽元的元素
+        quicksort(a, i+1, right);	//快排大于枢纽元的元素
+    }else{	//对子数组进行插入排序
+    	insertionSort(a, left, right);
+    }
+}
+//快速排序
+public static <AnyType extends Comparable<? super AnyType>> void quicksort(AnyType a[]){
+	quicksort(a, 0, a.length-1);
+}
+```
 
 
 
