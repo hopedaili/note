@@ -2141,15 +2141,25 @@ private static <AnyType extends Comparable<? super AnyType>>
 
 # 第八章 不相交集类
 
+## 8.1 等价关系
 
+若对于每一个元素（a，b），a， b∈S，aRb 或者为 true 或者为 false，则称在集合 S 上定义关系（relation）R。如果 aRb 是 true，则说 a 与 b 有关系。
 
+**等价关系**（equivalence relation）是满足下列三个性质的关系 R：
 
+1. （自反性）对于所有的 a∈S，aRa。
+2. （对称性）aRb 当且仅当 bRa。
+3. （传递性）若 aRb 且 bRc 则 aRc。
 
+电气连通性（electrical connectivity）是一个等价关系，其中所有的连接都是通过金属导线完成的。
 
+## 8.2 动态等价性问题
 
+不相交集合的 union/find 算法。
 
+## 8.3 基本数据结构
 
-
+两个集合的 union 运算，通过使一棵树的根的父链接接到另一颗树的根节点来合并两棵树。采纳在 union（x， y）后新的根是 x 的约定。
 
 
 
