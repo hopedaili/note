@@ -2233,13 +2233,40 @@ void topsort() throws CycleFoundException{
 }
 ```
 
+实施拓扑排序的伪代码：
 
+```java
+void topsort() chrows CycleFoundException{
+	Queue<Vertex> q = new Queue<Vertex>();
+    int counter = 0;
+    for each Vertex v
+        if(v.indegree == 0)
+            q.enqueue(v);
+    while(!q.isEmpty()){
+    	Vertex v = q.dequeue();
+        v.topNum = ++counter; //Assign next number
+        for each Vertex w adjacent to v
+            if(--w.indgree == 0)
+                q.enqueue(w);
+    }
+    if(counter != NUM_VERICES)
+        throw new CycleFoundException();
+}
+```
 
+## 9.3 最短路径算法
 
+输入是一个赋权图：与每条边（$v_i,v_j$）相联系的是穿越该弧的代价（或称为值）$c_{i,j}$。一条路径 $v_1v_2...v_N$ 的值是 $\sum^{N-1}_{i=1}c_{i,i+1}$，叫做**赋权路径长**（weighted path length）。而**无权路径长**（unweighted path length）只是路径上的边数，即 N-1.
 
+#### 单源最短路径问题
 
+给定一个赋权图 G=（V，E）和一个特定顶点 s 作为输入，找出从 s 到 G 中每个其他定点的最短赋权路径。
 
+**负值圈**（negative-cost cycle）；当它出现在图中时，最短路径问题就是不确定的。有负值的边未必就是坏事，但是他的出现似乎使问题增加了难度。方便起见，在没有负值圈时，从 s 到 s 最短路径为 0；
 
+### 9.3.1 无权最短路径
+
+**广度优先搜索**（breadth-first search）。该方法按层处理定点：据开始点最近的那些顶点首先被求值，而最远的那些顶点最后被求值。这很像对树的**层序遍历**（level-order traversal）。
 
 
 
