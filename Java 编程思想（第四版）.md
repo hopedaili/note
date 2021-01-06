@@ -543,17 +543,89 @@ break 可选，若省略 break，会继续执行后面的 case 语句，指导�
 
 ### 5.2.3 已返回值区分重载方法
 
+有时想要的是方法调用的其他效果（这常被称为“为了副作用而调用”），这时会调用方法而忽略其返回值。比如：
 
+```java
+f();
+```
 
+根据方法的返回值区分重载方法是行不通的。
 
+## 5.3 默认构造器
 
+默认构造器又名无参构造器，作用是创建一个默认对象。如果类中没有构造器，则编译器会自动创建一个默认构造器。如果已经定义了一个构造器（无论是否有参），编译器就不会自动创建构造器。
 
+## 5.4 this 关键字
 
+如果只有一个方法，如何指导是被 a 还是 b 调用的？
 
+```java
+class Banana(void peel(int i)){/*...*/}
 
+public class BananaPeel{
+	public static void main(String[] args){
+    	Banana a = new Banana(), b = new Banana();
+        a.peel(1);
+        b.peel(2);
+    }
+}
+```
 
+编译器做了一些幕后工作。暗自把“所操作对象的引用”作为第一个参数传递给 peel()；
 
+```java
+//内部表示形式，这么写无法通过编译
+Banana.peel(a, 1);
+Banana.peel(b, 2);
+```
 
+只有当需要明确指出当前对象的引用时，才需要使用 this 关键字：
+
+```java
+public class Apricot{
+	void pick(){/*...*/}
+    void pit(){
+    	pick();// 没必要 this.pick()
+        /*...*/
+    }
+}
+public class Leaf{
+	int i = 0;
+    Leaf increment(){
+    	i++;
+        return this;
+    }
+}
+```
+
+this 关键字对于将当前对象传递给其他方法也很有用：
+
+```java
+class Person{
+	public void eat(Apple apple){
+    	Apple peeled = apple.getPeeled();
+        System.out.println("Yummy");
+    }
+}
+class Peeler{
+	static Apple peel(Apple apple){
+    	//...remove peeel
+        return apple; //Peeled
+    }
+}
+class Apple(){
+	Apple getPeeled(){
+    	return Peeler.peel(this);
+    }
+}
+public class PassingThis{
+	public static void main(String[] args){
+    	new Person().eat(new Apple());
+    }
+}
+```
+
+### 5.4.1 在构造器中调用构造器
 
 
 
