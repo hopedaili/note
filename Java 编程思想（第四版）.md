@@ -697,15 +697,65 @@ Java 尽力保证所有变量在使用前都能得到恰当的初始化。对于
 
 ## 5.7 构造器初始化
 
+无法阻止自动初始化的进行，它将在构造器被调用之前发生。
+
+```java
+// i 会先被置为 0，然后变成 7
+public class Counter{
+	int i;
+    Counter(){ i = 7; }
+}
+```
 
 
 
+### 5.7.1 初始化顺序
 
+在类的内部，变量定义的先后顺序决定了初始化的顺序。即使变量定义散布于方法定义之间，他们仍旧会在任何方法（包括构造器）被调用之前得到初始化。
 
+变量->方法（包括构造器）
 
+```java
+class Window {
+	Window(int marker){ print("Window(" + marker + ")");};
+}
+class House{
+	Window w1 = new Window(1);
+    House(){
+    	print("House()");
+        w3 = new Window(33);
+    }
+    Window w2 = new Window(2);
+    void f(){print("f()")}
+    Window w3 = new Window(3);
+}
+public class OrderOfIniialization{
+	public static void main(String[] args){
+    	House h = new House();
+        h.f();
+    }
+}
+/* Output
+Window(1)
+Window(2)
+Window(3)
+House()
+Window(33)
+f()
+*/
+```
 
+### 5.7.2 静态数据的初始化
 
+无论创建多少个对象，静态数据都只占用一份存储区域。
 
+```java
+class Bowl {
+	Bowl(int marker){
+    	print();
+    }
+}
+```
 
 
 
