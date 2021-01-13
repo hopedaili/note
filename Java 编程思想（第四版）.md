@@ -751,31 +751,271 @@ f()
 
 ```java
 class Bowl {
-	Bowl(int marker){
-    	print();
+  Bowl(int marker) {
+    print("Bowl(" + marker + ")");
+  }
+  void f1(int marker) {
+    print("f1(" + marker + ")");
+  }
+}
+
+class Table {
+  static Bowl bowl1 = new Bowl(1);
+  Table() {
+    print("Table()");
+    bowl2.f1(1);
+  }
+  void f2(int marker) {
+    print("f2(" + marker + ")");
+  }
+  static Bowl bowl2 = new Bowl(2);
+}
+
+class Cupboard {
+  Bowl bowl3 = new Bowl(3);
+  static Bowl bowl4 = new Bowl(4);
+  Cupboard() {
+    print("Cupboard()");
+    bowl4.f1(2);
+  }
+  void f3(int marker) {
+    print("f3(" + marker + ")");
+  }
+  static Bowl bowl5 = new Bowl(5);
+}
+
+public class StaticInitialization {
+  public static void main(String[] args) {
+    print("Creating new Cupboard() in main");
+    new Cupboard();
+    print("Creating new Cupboard() in main");
+    new Cupboard();
+    table.f2(1);
+    cupboard.f3(1);
+  }
+  static Table table = new Table();
+  static Cupboard cupboard = new Cupboard();
+} /* Output:
+Bowl(1)
+Bowl(2)
+Table()
+f1(1)
+Bowl(4)
+Bowl(5)
+Bowl(3)
+Cupboard()
+f1(2)
+Creating new Cupboard() in main
+Bowl(3)
+Cupboard()
+f1(2)
+Creating new Cupboard() in main
+Bowl(3)
+Cupboard()
+f1(2)
+f2(1)
+f3(1)
+```
+
+### 5.7.3 显式的静态初始化
+
+静态代码段：
+
+```java
+public class Spoon{
+    satic int i;
+    static{
+		i = 47;
     }
 }
 ```
 
+这段代码只执行一次：当首次生成这个类的一个对象时，或者首次访问属于那个类的静态数据成员时（即便从未生成过那个类的对象）。
 
+```java
+class Cup {
+  Cup(int marker) {
+    print("Cup(" + marker + ")");
+  }
+  void f(int marker) {
+    print("f(" + marker + ")");
+  }
+}
 
+class Cups {
+  static Cup cup1;
+  static Cup cup2;
+  static {
+    cup1 = new Cup(1);
+    cup2 = new Cup(2);
+  }
+  Cups() {
+    print("Cups()");
+  }
+}
 
+public class ExplicitStatic {
+  public static void main(String[] args) {
+    print("Inside main()");
+    Cups.cup1.f(99);  // (1)
+  }
+  // static Cups cups1 = new Cups();  // (2)
+  // static Cups cups2 = new Cups();  // (2)
+} /* Output:
+Inside main()
+Cup(1)
+Cup(2)
+f(99)
+*///:~
+```
 
+## 5.8 数组初始化
 
+定义数组：
 
+```java
+//两种写法都可以
+int[] a1;
+int a2[];
+```
 
+编译器不允许指定数组的大小。定义的数组只是对数组的引用（该引用已经被分配了足够的存储空间），而且也没给数组对象本身分配任何空间。为了给数组创建相应的存储空间，必须写初始化表达式。
 
+初始化：
 
+```java
+//不同的初始化方式
+int a1 = {1, 2, 3, 4, 5};
 
+int a[];
+Random rand = new Random(47);
+a = new int[rand.nextInt(20)];
 
+int a[] = new int[rand.nextInt(20)];
 
+Integer[] a = {
+	new Integer(1),
+    new Integer(2),
+    3,
+};
 
+Integer[] b = new Integer[]{
+	new Integer(1),
+    new Integer(2),
+    3,
+}
 
+```
 
+后两种形式中，初始化列表的最后一个逗号都是可选的。
 
+### 5.8.1 可变参数列表
 
+Java SE5 中，加入可变参数列表：
 
+```java
+public class NewVarArgs {
+  static void printArray(Object... args) {
+    for(Object obj : args)
+      System.out.print(obj + " ");
+    System.out.println();
+  }
+  public static void main(String[] args) {
+    // Can take individual elements:
+    printArray(new Integer(47), new Float(3.14),
+      new Double(11.11));
+    printArray(47, 3.14F, 11.11);
+    printArray("one", "two", "three");
+    printArray(new A(), new A(), new A());
+    // Or an array:
+    printArray((Object[])new Integer[]{ 1, 2, 3, 4 });
+    printArray(); // Empty list is OK
+  }
+} /* Output: (75% match)
+47 3.14 11.11
+47 3.14 11.11
+one two three
+A@1bab50a A@c3c749 A@150bd4d
+1 2 3 4
+*///:~
+```
 
+## 5.9 枚举类型
+
+Java SE5 添加 enum 关键字。
+
+简单举例：
+
+```java
+public enum Spiciness {
+  NOT, MILD, MEDIUM, HOT, FLAMING
+} ///:~
+
+public class SimpleEnumUse {
+  public static void main(String[] args) {
+    Spiciness howHot = Spiciness.MEDIUM;
+    System.out.println(howHot);
+  }
+} /* Output:
+MEDIUM
+*///:~
+```
+
+创建 enum 时，编译器会自动添加一些有用的特性。例如，创建 toString() 方法；创建 ordinal()方法，用来表示某个特定 enum 敞亮的声明顺序；创建 static values() 方法，按照 enum 常量的生命顺序，产生由这些常量构成的数组：
+
+```java
+public class EnumOrder {
+  public static void main(String[] args) {
+    for(Spiciness s : Spiciness.values())
+      System.out.println(s + ", ordinal " + s.ordinal());
+  }
+} /* Output:
+NOT, ordinal 0
+MILD, ordinal 1
+MEDIUM, ordinal 2
+HOT, ordinal 3
+FLAMING, ordinal 4
+*///:~
+```
+
+应用于 switch：
+
+```java
+public class Burrito {
+  Spiciness degree;
+  public Burrito(Spiciness degree) { this.degree = degree;}
+  public void describe() {
+    System.out.print("This burrito is ");
+    switch(degree) {
+      case NOT:    System.out.println("not spicy at all.");
+                   break;
+      case MILD:
+      case MEDIUM: System.out.println("a little hot.");
+                   break;
+      case HOT:
+      case FLAMING:
+      default:     System.out.println("maybe too hot.");
+    }
+  }	
+  public static void main(String[] args) {
+    Burrito
+      plain = new Burrito(Spiciness.NOT),
+      greenChile = new Burrito(Spiciness.MEDIUM),
+      jalapeno = new Burrito(Spiciness.HOT);
+    plain.describe();
+    greenChile.describe();
+    jalapeno.describe();
+  }
+} /* Output:
+This burrito is not spicy at all.
+This burrito is a little hot.
+This burrito is maybe too hot.
+*///:~
+```
+
+## 5.10 总结
+
+# 第六章 访问权限控制
 
 
 
