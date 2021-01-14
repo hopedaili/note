@@ -1017,35 +1017,181 @@ This burrito is maybe too hot.
 
 # 第六章 访问权限控制
 
+## 6.1 包：库单元
 
+包内包含有一组类，他们在单一的名字空间之下被组织在了一起。
 
+导包前：
 
+```java
+public class FullQualification {
+  public static void main(String[] args) {
+    java.util.ArrayList list = new java.util.ArrayList();
+  }
+} ///:~
+```
 
+导包后：
 
+```java
+public class SingleImport {
+  public static void main(String[] args) {
+    ArrayList list = new java.util.ArrayList();
+  }
+} ///:~
+```
 
+导入包里的所有类，举例：
 
+```java
+import java.util.*;
+```
 
+导入包是提供一个管理名字空间的机制。
 
+当编写一个 Java 源代码文件时，此文件通常被称为编译单元（有时也被称为转译单元）。每个编译单元都必须有一个后缀名 .java，而在编译单元内则可以有一个 pubic 类，该类的名称必须与文件的名称相同（包括大小写，但不包括文件的后缀名 .java）。每个编译单元只能有一个 public 类，否则编译器就不会接受。如果在该编译单元这种还有额外的类那么在包之外的世界时无法看见这些类的，这是因为他们不是 public 类，而且他们主要用来为主 public 类提供支持。
 
+### 6.1.1 代码组织
 
+编译一个 .java 文件时，在 .java 文件中的每个类都会有一个输出文件，后缀为 .class。
 
+一般编译型语言：编译器产生一个中间文件（通常是一个 obj 文件），然后再与通过链接器（用以创建一个可执行文件）或类库产生器（librarian，用以创建一个类库）产生的其他同类文件捆绑在一起。
 
+Java：Java 可运行程序时一组可以打包并压缩为一个 Java 文档文件（JAR，使用 Java 的 jar 文档生成器）的 .class 文件。Java 解释器负责在这些文件的查找、装载和解释。
 
+类库实际上是一组类文件。其中每个文件都有一个 public 类，以及任何数量的非 public 类。因此每个文件都有一个构件。如果希望这些构件（每一个都有他们自己的独立的 .java 和 .class 文件）属于同一个群组，可以使用关键字 package。
 
+### 6.1.2 创建独一无二的包名
 
+将特定包的所有 .class 文件都置于一个目录下。
 
+将所有的文件收入一个子目录还可以解决另外两个问题：怎样创建独一无二的名称，以及怎样查找有可能隐藏于目录结构中某处的类。这些任务是通过将 .class 文件所在的路径位置编码成 package 的名称来实现的。
 
+独一无二解决：域名唯一，按照惯例，package 名称的第一部分是类的创建者的反序的 Internet 域名。
 
+位置确定：package 名称问劫尾机器上的一个目录。Java 程序运行并需要加载 .class 文件的时候，可以确定 .class 文件在目录上的位置。
 
+Java 解释器的运行过程：首先，找出环境变量 CLASSPATH（可以通过操作系统来设置，有时也可通过安装程序-用来在你的机器上安装 Java 或基于 Java 的工具-来设置）。CLASSPATH 包含一个或多个目录，用做查找 .class 文件的根目录。从根目录开始，解释器获取包的名称并将每个据点替换成反斜杠，以从 CLASSPATH 根中产生一个路径名称（于是，package foo.bar.baz 就便成为 foo\bar\baz 或 foo/bar/baz 或其他，这一切取决于操作系统）。得到路径会与 CLASSPATH 中的各个不同的项相连接，解释器就在这些目录中查找与你所要创建的类名称相关的 .class 文件。（解释器还会去查找某些涉及 Java 解释器所在位置的标准目录。）
 
+### 6.1.3 定制工具库
 
+举例：
 
+```java
+public class Print {
+  // Print with a newline:
+  public static void print(Object obj) {
+    System.out.println(obj);
+  }
+  // Print a newline by itself:
+  public static void print() {
+    System.out.println();
+  }
+  // Print with no line break:
+  public static void printnb(Object obj) {
+    System.out.print(obj);
+  }
+  // The new Java SE5 printf() (from C):
+  public static PrintStream
+  printf(String format, Object... args) {
+    return System.out.printf(format, args);
+  }
+} ///:~
+```
 
+使用：
 
+```java
+public class PrintTest {
+  public static void main(String[] args) {
+    print("Available from now on!");
+    print(100);
+    print(100L);
+    print(3.14159);
+  }
+} /* Output:
+Available from now on!
+100
+100
+3.14159
+*///:~
+```
 
+### 6.1.4 用 import 改变行为
 
+Java 没有 C 的条件编译功能。
 
+条件编译还有其他一些有价值的用途。调试。调试功能在开发过程中是开启的，在发布的产品中是禁用的。可以通过修改被导入的 package 的方法实现这一目的，修改的方法是将程序中用到的代码从调试版改为发布版。这一种技术适用于任何种类的条件代码。
 
+### 6.1.5 对使用包的忠告
+
+务必记住，无论何时创建包，都已经再给定包的名称的时候隐含地指定了目录结构。这个包必须位于其名称所指定的目录之中，而该目录必须是在以 CLASSPATH 开始的目录中可以查询到的。
+
+注意，编译过的代码通常放置在与源代码不同的目录中，但是必须保证 JVN 使用 CLASSPATH 可以找到该路径。
+
+## 6.2 Java 访问权限修饰词
+
+### 6.2.1 包访问权限修饰词
+
+默认访问权限没有任何关键字，通常是指包访问权限，有时也表示成为 friendly。
+
+取得对某成员的访问权限的唯一途径：
+
+1. 使该成员成为 public。
+2. 通过不加访问权限修饰词并将其他类放置于同一个包内。
+3. 继承。继承来的类可以访问 public 成员和 protected 成员，但 private 成员不行。
+4. 提供访问器（accessor）和变异器（mutator）方法（也可以称作 get/set 方法），以读取和改变数值。
+
+### 6.2.2 public：接口访问权限
+
+使用关键字 public，意味着 public 之后紧跟着的成员生命自己对每个人都是可用的，尤其是使用类库的客户端程序员更是如此。
+
+### 6.2.3 private：你无法访问
+
+private 关键字：除了包含该成员的类之外，其他任何类都无法访问这个成员。
+
+示例：控制如何创建对象，阻止别人直接访问某个特定的构造器（或全部构造器）。
+
+```java
+class Sundae {
+  private Sundae() {}
+  static Sundae makeASundae() {
+    return new Sundae();
+  }
+}
+
+public class IceCream {
+  public static void main(String[] args) {
+    //! Sundae x = new Sundae();
+    Sundae x = Sundae.makeASundae();
+  }
+} ///:~
+```
+
+### 6.2.4 protected：继承访问权限
+
+## 6.3 接口和实现
+
+访问权限控制常被称为是**具体实现的隐藏**。把数据和方法包装进类中，以及具体实现的隐藏，长共同被称作是**封装**。其结果是一个同时带有特征和行为的数据类型。
+
+访问权限控制将权限的边界划在了数据类型的内部。出于两个原因：
+
+1. 要设定客户端程序员可以使用和不可以使用的界限。可以在结构中简历自己内部机制，而不必担心客户端程序员会偶然地将内部机制当作是他们可以使用的接口的一部分。
+2. 接口和具体实现进行分离。如果结构是用于一组程序之中，而客户端程序员除了可以想接口发送信息之外什么也不可以做的话，那么就可以随意更改所有不是 public 的东西（例如有包访问权限、protected 和 private 的成员），而不会破坏客户端代码。
+
+## 6.4 类的访问权限
+
+修饰词必须出现于关键字 class 之前。
+
+一些限制：
+
+1. 每个编译单元（文件）都只能有一个 public 类。
+2. public 类的名称必须与含有该编译单元的文件名相匹配，包括大小写。
+3. 编译单元内完全不带 public 类也是可能的。这种情况下，可以随意对文件命名。
+
+## 6.5 总结
+
+# 第七章 复用类
 
 
 
