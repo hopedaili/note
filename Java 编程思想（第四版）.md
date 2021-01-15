@@ -1193,45 +1193,344 @@ public class IceCream {
 
 # 第七章 复用类
 
+## 7.1 组合语法
 
+只需将对象引用置于新类中即可。
 
+类中的对象引用不手动初始化时，为它们调用任何方法都会得到“运行时错误”异常。
 
+初始化引用的位置：
 
+1. 在定义对象的时候。这意味着它们总能够在构造器被调用之前被初始化。
+2. 在类的构造器中。
+3. 就在正要使用这些对象之前，这种方式成为惰性初始化。在生成对象不值得及不必每次都生成的情况下，这种方式可以减少额外的负担。
+4. 使用实例初始化
 
+示例：
 
+```java
+//: reusing/Bath.java
+// Constructor initialization with composition.
+import static net.mindview.util.Print.*;
 
+class Soap {
+  private String s;
+  Soap() {
+    print("Soap()");
+    s = "Constructed";
+  }
+  public String toString() { return s; }
+}	
 
+public class Bath {
+  private String // Initializing at point of definition:
+    s1 = "Happy",
+    s2 = "Happy",
+    s3, s4;
+  private Soap castille;
+  private int i;
+  private float toy;
+  public Bath() {
+    print("Inside Bath()");
+    s3 = "Joy";
+    toy = 3.14f;
+    castille = new Soap();
+  }	
+  // Instance initialization:
+  { i = 47; }
+  public String toString() {
+    if(s4 == null) // Delayed initialization:
+      s4 = "Joy";
+    return
+      "s1 = " + s1 + "\n" +
+      "s2 = " + s2 + "\n" +
+      "s3 = " + s3 + "\n" +
+      "s4 = " + s4 + "\n" +
+      "i = " + i + "\n" +
+      "toy = " + toy + "\n" +
+      "castille = " + castille;
+  }	
+  public static void main(String[] args) {
+    Bath b = new Bath();
+    print(b);
+  }
+} /* Output:
+Inside Bath()
+Soap()
+s1 = Happy
+s2 = Happy
+s3 = Joy
+s4 = Joy
+i = 47
+toy = 3.14
+castille = Constructed
+*///:~
+```
 
+## 7.2 继承语法
 
+在继承过程中，需要先声明“新类与旧类相似”。这种声明时通过类在主题的左边花括号之前，书写后面紧随基类名称的关键字 extends 而实现的。当这么做时，回自动得到基类中所有的域和方法。
 
+举例和说明略。
 
+## 7.3 代理
 
+Java 并没有提供对代理的直接支持。这是继承与组合之间的中庸之道，因为我们将懿哥成员对象置于所要构造的类中（就像组合），但与此同时我们在新类中暴露了该成员对象的所有方法（就像继承）。
 
+例如：太空船需要一个控制模块：
 
+```java
+//: reusing/SpaceShipControls.java
 
+public class SpaceShipControls {
+  void up(int velocity) {}
+  void down(int velocity) {}
+  void left(int velocity) {}
+  void right(int velocity) {}
+  void forward(int velocity) {}
+  void back(int velocity) {}
+  void turboBoost() {}
+} ///:~
+```
 
+继承的方式：
 
+```java
+//: reusing/SpaceShip.java
 
+public class SpaceShip extends SpaceShipControls {
+  private String name;
+  public SpaceShip(String name) { this.name = name; }
+  public String toString() { return name; }
+  public static void main(String[] args) {
+    SpaceShip protector = new SpaceShip("NSEA Protector");
+    protector.forward(100);
+  }
+} ///:~
+```
 
+代理的方式：继承的方式中，SpaceShipControls 所有的方法在 SpaceShip 中暴露，代理解决了此类问题。
 
+```java
+//: reusing/SpaceShipDelegation.java
 
+public class SpaceShipDelegation {
+  private String name;
+  private SpaceShipControls controls =
+    new SpaceShipControls();
+  public SpaceShipDelegation(String name) {
+    this.name = name;
+  }
+  // Delegated methods:
+  public void back(int velocity) {
+    controls.back(velocity);
+  }
+  public void down(int velocity) {
+    controls.down(velocity);
+  }
+  public void forward(int velocity) {
+    controls.forward(velocity);
+  }
+  public void left(int velocity) {
+    controls.left(velocity);
+  }
+  public void right(int velocity) {
+    controls.right(velocity);
+  }
+  public void turboBoost() {
+    controls.turboBoost();
+  }
+  public void up(int velocity) {
+    controls.up(velocity);
+  }
+  public static void main(String[] args) {
+    SpaceShipDelegation protector =
+      new SpaceShipDelegation("NSEA Protector");
+    protector.forward(100);
+  }
+} ///:~
+```
 
+## 7.4 结合使用组合和代理
 
+### 7.4.1 确保正确清理
 
+### 7.4.2 名称屏蔽
 
+如果 Java 的基类拥有某个已被对此重载的方法名称，那么在到处类中重新定义该方法名称并不会屏蔽其在基类中的任何版本。因此，无论时在该层或者其他基类中对方发进行定义，重载机制都可以正常工作。
 
+Java SE5 新增了 @Override 注解，他并不是关键字，但可以把它当作关键字使用。当想要覆盖写某个方法时，可以选在添加这个注解，在你不留心重载而并非覆盖写了该方法时，变异器就会生成一条错误消息。这样，@Override 注解可以防止你在不想重载时而意外地进行了重载。
 
+## 7.5 在组合与继承之间选择
 
+组合技术通常用于想在新类中使用现有类的功能而非他的接口这种情形。即，在新类中嵌入某个对象，让其实现所需要的功能，但新类的用户看到的只是为新类所定义的接口，而非嵌入对象的入口。为取得此效果，需要在新类中嵌入一个现有类的 private 对象。
 
+有时，允许类的用户直接访问新类中的组合成分是极具意义的；也就是说将成员对象声明为 public。如果成员对象自身都隐藏了具体实现，那么这种做法是安全的。当用户能够了解到你正在组装一组部件时，回使得端口更加易于理解。
 
+## 7.6 protected 关键字
 
+## 7.7 向上转型
 
+### 7.7.1 为什么成为向上转型
 
+该属于的使用有其历史原因，并且时以传统的类继承图的绘制方法为基础：将根置于页面的顶端，然后逐渐向下。
 
+### 7.7.2 在讨论组合与继承
 
+组合运动的多一点，继承不太常用。应当慎用继承，其使用场景仅限于你确信使用该技术确实有效的情况。
 
+到底是该使用组合还是继承，一个最清晰的判断办法就是我呢疑问自己是否需要从新类向基类进行向上转型。如果必须向上转型，则集成是必要的；如果不需要，则应当好好考虑自己是否需要继承。第八章提出了一个使用向上转型的最具说服力的理由，但只要记得子问一下“我真的需要向上转型吗？”就能较好地在这两种技术中作出决定。
 
+## 7.8 final 关键字
 
+final 通常指的是“这是无法改变的”。不想改变可能处于两种理由：设计或者效率。
+
+可能使用 final 的三种情况：数据、方法和类。
+
+### 7.8.1 final 数据
+
+有时数据的恒定不变是很有用的，比如：
+
+1. 一个永不改变的编译时常量
+2. 一个在运行时被初始化的值，你不希望它被改变。
+
+final 修饰的常量必须是基本数据类型，定义的时候必须进行赋值。final 使数值恒定不变。
+
+对于对象引用，final 使引用恒定不变。一旦引用被初始化指向一个对象，就无法再把它改为指向另一个对象。然而，对象其自身使可以被修改的。
+
+#### 空白 final
+
+Java 允许生成空白 final，空白 final 指被声明为 final 但又未给定初值的域。无论什么情况，编译器都确保空白 final 在使用前必须被初始化。空白 final 在关键在 final 的使用上提供了更大的灵活性，为此，一个勒种的 final 域就可以做到根据对象而有所不同，却又保持其恒定不变的特性。
+
+```java
+//: reusing/BlankFinal.java
+// "Blank" final fields.
+
+class Poppet {
+  private int i;
+  Poppet(int ii) { i = ii; }
+}
+
+public class BlankFinal {
+  private final int i = 0; // Initialized final
+  private final int j; // Blank final
+  private final Poppet p; // Blank final reference
+  // Blank finals MUST be initialized in the constructor:
+  public BlankFinal() {
+    j = 1; // Initialize blank final
+    p = new Poppet(1); // Initialize blank final reference
+  }
+  public BlankFinal(int x) {
+    j = x; // Initialize blank final
+    p = new Poppet(x); // Initialize blank final reference
+  }
+  public static void main(String[] args) {
+    new BlankFinal();
+    new BlankFinal(47);
+  }
+} ///:~
+```
+
+必须在域的定义出或者每个构造器中用表达式对 final 进行赋值，这正式 final 域在使用前总使被初始化的原因所在。
+
+#### final 参数
+
+Java 允许在参数列表中以生命的方式将参数指明为 final。这意味着你无法在方法中更改参数引用所指向的对象。
+
+### 7.8.2 final 方法
+
+使用 final 方法的原因有两个。第一个原因是把方法锁定，以放置任何继承类修改它的含义。这是处于设计的考虑：想要确保在继承中是方法行为保持不变，并且不会覆盖。
+
+建议使用 final 方法的第二个原因是效率。早起 Java 实现中，如果讲一个方法指指明为 final，就是同意编译器将针对该方法的所有调用都转为内嵌调用。……省略细节，就是会快，但如果一个方法很大，效果不明显。
+
+Java 新版本中，虚拟机进行优化，不用使用 final 方法进行优化。
+
+#### final 和 private 关键字
+
+类中所有的 private 方法都是隐式地指定为 final 的。由于无法取用 private 方法，所以也就无法覆盖它。可以对 private 方法添加 final 修饰词，但这并不能给该方法增加任何额外的意义。
+
+这一问题会造成混淆。因为，如果你是图覆盖一个 private 方法（隐含是 final 的），似乎是奏效的，而且编译器也不回给出错误信息。
+
+### 7.8.3 final 类
+
+当将某个类的整体定义为 final 时（通过将关键字 final 置于它的定义之前），就表明了你不打算继承该类，而且允不允许别人这样做。换句话说，出于某种考虑，你对该类的设计用不需要做任何改动，或者出安全考虑，你不希望它有子类。
+
+### 7.8.4 有关 final 的忠告
+
+在设计类时，将方法指明是 final 的，应该说是明智的。你可能会觉得，没人会想要覆盖你的方法。有时这是对的。
+
+但请留意你所做的假设。要遇见类是如何被服用的一般是很困难的，特别对于一个通用类而言更是如此。如果讲一个方法指定为 final，可能会妨碍其他程序员在项目中通过继承来复用你的类，而这只是因为你没有想到他会以那种方式被运用。
+
+举例：
+
+Java 标准库 1.0/1.1 Vector 类后来被现在 Java 的容器库用 ArrayList 替代。
+
+Java 标准库 1.0/1.1 Hashtable 类后来被现在 Java 的容器库用 HashMap 替代。
+
+## 7.9 初始化及类的加载
+
+在许多传统语言中，程序师作为启动过程的一部分立即被加载的。然后说是初始化，紧接着程序开始运行。这些语言的初始化过程必须小心控制，以确保定义为 static 的东西，其初始化顺序不会造成麻烦。例如 C++ 中，如果某个 static 期望另一个 static 在被初始化之前就能有效的使用它们就会出现问题。
+
+Java 不会出现这个问题，因为他在用了一种不同的加载方式。一般来说，可以说：“类的代码在初次使用时才加载“。这通常指加载发生于创建累的第一个对象之时，但是当访问 static 域或 static 方法时，也会发生加载。
+
+初次使用之处也是 static 初始化发生之处。所有的 static 对象和 static 代码段都会在加载时依程序中的顺序（即，定义类时的书写顺序）而依次初始化。定义为 static 的东西只会被初始化一次。
+
+### 7.9.1 继承与初始化
+
+举例观察：
+
+```java
+//: reusing/Beetle.java
+// The full process of initialization.
+import static net.mindview.util.Print.*;
+
+class Insect {
+  private int i = 9;
+  protected int j;
+  Insect() {
+    print("i = " + i + ", j = " + j);
+    j = 39;
+  }
+  private static int x1 =
+    printInit("static Insect.x1 initialized");
+  static int printInit(String s) {
+    print(s);
+    return 47;
+  }
+}
+
+public class Beetle extends Insect {
+  private int k = printInit("Beetle.k initialized");
+  public Beetle() {
+    print("k = " + k);
+    print("j = " + j);
+  }
+  private static int x2 =
+    printInit("static Beetle.x2 initialized");
+  public static void main(String[] args) {
+    print("Beetle constructor");
+    Beetle b = new Beetle();
+  }
+} /* Output:
+static Insect.x1 initialized
+static Beetle.x2 initialized
+Beetle constructor
+i = 9, j = 0
+Beetle.k initialized
+k = 47
+j = 39
+*///:~
+```
+
+在Beetle上运行Java时，发生的第一件事就是试图访问Beetle.main()(一个static方法），于是加载器开始启动并找出Beetle类的编译代码(在名为Beetle.class的文件之中）。在对他进行加载的过程中，编译器注意到他有一个基类(这是由关键字extends得知的)，于是它继续加载(该基类），不管你是否打算产生一个该基类的对象，这都会发生(请尝试将对象创建代码注释掉,以证明这一点)。
+
+如果该基类还有其自身的基类，那么第二个基类会被加载，如此类推，直到根基类。接下来，根基类(在本例中时Insect)中的static初始化将被执行，然后是下一个导出类，以此类推。
+
+至此为止，必要的类都已加载完毕，对象就可以被创建了(在本例中，Beetle beetle=new Beetle())。首先，对象中所有的基本类型都会被设为默认值，对象中的对象引用被设为null。然后，基类的构造器被调用。在基类构造器被调用完成之后，实例变量按顺序被初始化，最后，构造器的其余部分被执行。
+
+## 7.10 总结
+
+# 第八章 多态
 
 
 
