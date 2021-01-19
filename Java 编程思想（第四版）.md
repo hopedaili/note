@@ -1532,13 +1532,151 @@ j = 39
 
 # 第八章 多态
 
+## 8.1 再论向上转型
 
+对象既可以作为自己本身的类使用，也可以作为它的基类型使用。把对某个对象的引用视为对其基类型的引用的做法被称作**向上转型**（因为在继承树的画法中，基类是放置在上方的）。
 
+### 8.1.1 忘记对象类型
 
+## 8.2 转机
 
+### 8.2.1 方法调用绑定
 
+将一个方法调用同一个方法主体关联起来被称作**绑定**。
 
+**前期绑定**：程序执行**前期绑定**（如果有的话，由编译器和连接程序实现）。面向过程语言默认的绑定方式。
 
+**后期绑定**：在运行时根据对象的类型进行绑定。后期绑定也叫做**动态绑定**或者**运行时绑定**。
+
+Java 中除了 static 方法和 final 方法（private 方法 属于 final 方法）之外，其他所有的方法都是后期绑定。
+
+### 8.2.2 产生正确的行为
+
+### 8.2.3 可扩展性
+
+### 8.2.4 缺陷：“覆盖”私有化
+
+结论：只有非 private 方法才可以被覆盖；但是还需要密切注意 private 方法的现象，这时虽然编译器不会报错，但是也不会按照我们所期望的来执行。确切地说，在导出类中，对于基类中的 private 方法，最好采用不同的名字。
+
+### 8.2.5 缺陷：域与静态方法
+
+**只有普通方法调用可以是多态的**。
+
+例如，如果直接访问某个域，这个访问就将在编译期进行解析：
+
+```java
+//: polymorphism/FieldAccess.java
+// Direct field access is determined at compile time.
+
+class Super {
+  public int field = 0;
+  public int getField() { return field; }
+}
+
+class Sub extends Super {
+  public int field = 1;
+  public int getField() { return field; }
+  public int getSuperField() { return super.field; }
+}
+
+public class FieldAccess {
+  public static void main(String[] args) {
+    Super sup = new Sub(); // Upcast
+    System.out.println("sup.field = " + sup.field +
+      ", sup.getField() = " + sup.getField());
+    Sub sub = new Sub();
+    System.out.println("sub.field = " +
+      sub.field + ", sub.getField() = " +
+      sub.getField() +
+      ", sub.getSuperField() = " +
+      sub.getSuperField());
+  }
+} /* Output:
+sup.field = 0, sup.getField() = 1
+sub.field = 1, sub.getField() = 1, sub.getSuperField() = 0
+*///:~
+```
+
+当 Sub 对象转型为 Super 引用时，任何域访问操作都将由编译期解析，因此不是多态的。在本例中，为 Super.field 和 Sub.field 分配了不同的存储空间。这样，Sub 实际上包含两个被称为 fiels 的域：它自己的和它从 Super 处得到的。然而在引用 Sub 中的 field 时所产生的默认域并非 Super 版本的 field 域。因此，为了得到 Super.field，必须显式地指明 super.field。
+
+尽管这看起来好像会成为一个容易令人混淆的问题，但是在实践中，它实际上从来不会发生。首先，你通常会将所有的域都设置成 private，因此不能直接访问他们，其副作用是只能调用方法来访问。另外，你可能不会对基类中的域和导出类中的域赋予相同的名字，因为这种做容易令人混淆。
+
+**翻译问题，域可以理解为变量：**
+
+============================================================
+
+Java中的Field译为“字段”，也译为“域”，Field和成员变量（Member Variable）是相同的。所以域是变量中的一种。
+
+关于Java中的变量，官方文档中如是说：
+
+>  There are several kinds of variables: 
+
+- Member variables in a class—these are called fields.
+- Variables in a method or block of code—these are called local variables.
+- Variables in method declarations—these are called parameters.
+
+翻译过来即：
+
+>  Java中有如下几种变量： 
+
+- 类中的成员变量——称为字段（亦即 “域”）
+- 一个方法或代码块中的变量——称为局部变量（亦即 “本地变量”）
+- 在方法声明中的变量——称为参数
+
+**成员变量**
+
+包含：类变量（也称静态变量、静态域）和实例变量（也称实例域、非静态域）。
+
+**类变量**
+
+由static修饰，每个类的实例共享一个类变量，它位于内存中的一个固定位置。任何对象都可以改变类变量的值，但是也可以在不创建类的实例的情况下操作类变量。
+
+**实例变量**
+
+当一个类实例化多个对象时，它们都有自己独立的实例变量副本。每个对象都有自己的这些变量的值，存储在不同的内存位置。
+
+============================================================
+
+如果某个方法是静态的，它的行为就不具有多态性：
+
+```java
+//: polymorphism/StaticPolymorphism.java
+// Static methods are not polymorphic.
+
+class StaticSuper {
+  public static String staticGet() {
+    return "Base staticGet()";
+  }
+  public String dynamicGet() {
+    return "Base dynamicGet()";
+  }
+}
+
+class StaticSub extends StaticSuper {
+  public static String staticGet() {
+    return "Derived staticGet()";
+  }
+  public String dynamicGet() {
+    return "Derived dynamicGet()";
+  }
+}
+
+public class StaticPolymorphism {
+  public static void main(String[] args) {
+    StaticSuper sup = new StaticSub(); // Upcast
+    System.out.println(sup.staticGet());
+    System.out.println(sup.dynamicGet());
+  }
+} /* Output:
+Base staticGet()
+Derived dynamicGet()
+*///:~
+
+```
+
+**静态方法是与类，而并非与单个的对象相关联的。**
+
+## 8.3 构造器和多态
 
 
 
