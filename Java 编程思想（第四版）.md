@@ -1678,25 +1678,199 @@ Derived dynamicGet()
 
 ## 8.3 构造器和多态
 
+构造器并不具有多态性，他们实际上是 static 方法，只不过该 static 声明是隐式的。
 
+### 8.3.1 构造器的调用顺序
 
+基类的狗在其总是在导出类的构造过程中被调用，而且按照继承层次逐渐向上链接，以使每个基类的构造器都能得到调用。
 
+这样做是有意义的，因为构造器具有一项特殊任务：检查对象是否被正确地构造。导出类只能方位它自己的成员，不能方位基类中的成员（基类成员通常是 private 类型）。只有基类的构造器才具有恰当的只是和权限来对自己的元素进行初始化。因此，必须令所有的构造器都得到调用，否则就不可能正确构造完整对象。这正是编译器为什么要强制每个导出类部分都必须调用构造器的原因。在导出类的构造器主体中，如果没有明确指定调用某个基类构造器，它就会“默默”地调用默认构造器。如果不存在默认构造器，编译器就会报错（若某个类没有构造器，编译器会自动合成出一个默认构造器）。
 
+```java
+//: polymorphism/Sandwich.java
+// Order of constructor calls.
+package polymorphism;
+import static net.mindview.util.Print.*;
 
+class Meal {
+  Meal() { print("Meal()"); }
+}
 
+class Bread {
+  Bread() { print("Bread()"); }
+}
 
+class Cheese {
+  Cheese() { print("Cheese()"); }
+}
 
+class Lettuce {
+  Lettuce() { print("Lettuce()"); }
+}
 
+class Lunch extends Meal {
+  Lunch() { print("Lunch()"); }
+}
 
+class PortableLunch extends Lunch {
+  PortableLunch() { print("PortableLunch()");}
+}
 
+public class Sandwich extends PortableLunch {
+  private Bread b = new Bread();
+  private Cheese c = new Cheese();
+  private Lettuce l = new Lettuce();
+  public Sandwich() { print("Sandwich()"); }
+  public static void main(String[] args) {
+    new Sandwich();
+  }
+} /* Output:
+Meal()
+Lunch()
+PortableLunch()
+Bread()
+Cheese()
+Lettuce()
+Sandwich()
+*///:~
+```
 
+对象调用构造器要遵照下面的顺序：
 
+1. 调用基类构造器。这个步骤会不断地反复递归下去，首先是构造这种层次结构的根，然后是下一层导出类，等等，指导最低层的导出类。
+2. 按证明顺序调用成员的初始化方法。
+3. 调用导出类构造器的主体。
 
+### 8.3.2 继承与清理
 
+通过组合和继承方法创建新类时，子对象通常会留给垃圾回收器进行处理。
 
+如果有特殊清理动作，就必须在导出类覆盖 dispose() 方法。覆盖被继承类的 dispose() 方法时，务必记住调用基类版本 dispose() 方法；否则，基类的清理动作不会发生。
 
+万一某个子对象要依赖于其他对象，销毁的顺序应该和初始化顺序相反。对于字段，则意味着与声明的顺序相反（因为字段的舒适化时按照生命的顺序进行的）。对于基类（遵循 C++ 中析构函数的形式），首先对其导出类进行清理，然后才是基类。这是因为导出类的清理可能会调用基类中的某些方法，所以需要使基类中的构件仍起作用而不应过早地销毁。
 
+### 8.3.3 构造器内部的多态方法的行为
 
+如果在一个构造器的内部调用正在构造的对象的某个动态绑定方法，会发生什么情况？
+
+如果构造器只是在构建对象过程中的一个步骤，并且该对象所属的类是从这个构造器所属的类导出的，那么导出部分在当前构造器正在被调用的时刻任然是没有被初始化的。
+
+然而，一个动态绑定的方法调用却会向外深入到继承层次结构内部，他可以调用导出类里的方法。如果我们是在构造器内部这样做，那么就可能会调用某个方法，而这个方法所操纵的成员可能还未进行初始化。
+
+```java
+//: polymorphism/PolyConstructors.java
+// Constructors and polymorphism
+// don't produce what you might expect.
+import static net.mindview.util.Print.*;
+
+class Glyph {
+  void draw() { print("Glyph.draw()"); }
+  Glyph() {
+    print("Glyph() before draw()");
+    draw();
+    print("Glyph() after draw()");
+  }
+}	
+
+class RoundGlyph extends Glyph {
+  private int radius = 1;
+  RoundGlyph(int r) {
+    radius = r;
+    print("RoundGlyph.RoundGlyph(), radius = " + radius);
+  }
+  void draw() {
+    print("RoundGlyph.draw(), radius = " + radius);
+  }
+}	
+
+public class PolyConstructors {
+  public static void main(String[] args) {
+    new RoundGlyph(5);
+  }
+} /* Output:
+Glyph() before draw()
+RoundGlyph.draw(), radius = 0
+Glyph() after draw()
+RoundGlyph.RoundGlyph(), radius = 5
+*///:~
+```
+
+注意：第二行输出是 0，不是 1；
+
+初始化实际过程：
+
+1. 在其他任何食物发生之前，将分配给对象的存储空间初始化成二进制的零。
+2. 如果所述那样调用基类构造器。此时，调用被覆盖后的 draw() 方法（要在调用 RoundGlyph 构造器之前调用），由于步骤 1 的缘故，我们此时会发现 radius 的值为 0。
+3. 按照生命的顺序调用成员的初始化方法。
+4. 调用导出类的构造器主体。
+
+## 8.4 协变返回类型
+
+Java SE5 中添加了斜边返回类型，他表示在导出类中的被覆盖方法可以返回基类方法的返回类型的某种导出类型：
+
+```java
+//: polymorphism/CovariantReturn.java
+
+class Grain {
+  public String toString() { return "Grain"; }
+}
+
+class Wheat extends Grain {
+  public String toString() { return "Wheat"; }
+}
+
+class Mill {
+  Grain process() { return new Grain(); }
+}
+
+class WheatMill extends Mill {
+  Wheat process() { return new Wheat(); }
+}
+
+public class CovariantReturn {
+  public static void main(String[] args) {
+    Mill m = new Mill();
+    Grain g = m.process();
+    System.out.println(g);
+    m = new WheatMill();
+    g = m.process();
+    System.out.println(g);
+  }
+} /* Output:
+Grain
+Wheat
+*///:~
+```
+
+Java SE5 与 Java 较早版本之间的主要差异就是较早的版本将请吃 process() 的覆盖版本必须返回 Grain，而不能返回 Wheat，尽管 Wheat 是从 Grain 导出的，因而也应该是一种合法的返回类型。协变返回类型允许返回更具体的 Wheat 类型。
+
+## 8.5 用继承进行设计
+
+是用现成的类建立新类时，最好的方式是首选组合。组合不会轻质程序设计进入继承的层次结构。而且，组合更加灵活，可以动态选择类型；相反，集成在编译时就需要知道确切的类型。
+
+一条通用准则：用继承表达行为间的差异，并用字段表达状态上的变化。
+
+### 8.5.1 纯继承与扩展
+
+纯替代关系（“is-a”）：只有在基类中已经及那里的方法才可以在导出类中被覆盖。
+
+扩展接口（“is-like-a”）（解决特定问题的完美方案）：有相同的基本接口，但还具有额外方法实现的其他特性。
+
+is-like-a 缺点：导出类中接口扩展部分不能被基类访问，因此，一旦向上转型，就不能调用那些新方法。
+
+### 8.5.2 向下转型与运行时类型识别
+
+向上转型会修饰具体的类型信息，但是安全。
+
+向下转型不安全，需要有某种方法确保向下转型的正确性。
+
+Java 中所有转型都会得到检查！即使是普通的加括弧形式的类型转换，在进入运行期时仍然会对其进行检查。如果不是们想要的类型就会返回一个 ClassCastException（类型转换异常）。这种在运行期间对类型进行检查的行为称作“运行时类型识别”（RTTI）
+
+## 8.6 总结
+
+# 第九章 接口
+
+## 9.1 抽象类和抽象方法
 
 
 
