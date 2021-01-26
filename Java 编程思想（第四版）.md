@@ -1902,11 +1902,101 @@ interface 这个关键字产生一个完全抽象的类，它根本就没有提�
 
 ## 9.4 Java 中的多继承
 
+## 9.5 通过继承来扩展接口
 
+### 9.5.1 组合接口时的名字冲突
 
+## 9.6 接口适配
 
+接口一种常见用法是策略设计模式，编写一个执行某些操作的方法，该方法将接受一个同样是你指定的接口。
 
+住要声明：“你可以用任何你想要的对象来调用我的方法，只要你的对象遵循我的接口”。
 
+## 9.7 接口中的域
+
+### 9.7.1 初始化接口中的域
+
+接口中定义的域不能是“空 final”，但可以被非常量表达式初始化。
+
+## 9.8 嵌套接口
+
+接口可以嵌套在类或者其他接口中。
+
+## 9.9 接口与工厂
+
+接口是实现多重继承的途径，而生成遵循某个接口的对象的典型方式就是工厂方法设计模式。这与直接调用构造器不同，我们在工厂对象上调用的是创建方法，而该工厂对象将生成接口的某个实现的对象。理论上，通过这种方式，我们的代码将完全与接口的实现分离，这就使得我们可以透明地将某个实现替换为另一个实现。
+
+```java
+//: interfaces/Factories.java
+import static net.mindview.util.Print.*;
+
+interface Service {
+  void method1();
+  void method2();
+}
+
+interface ServiceFactory {
+  Service getService();
+}
+
+class Implementation1 implements Service {
+  Implementation1() {} // Package access
+  public void method1() {print("Implementation1 method1");}
+  public void method2() {print("Implementation1 method2");}
+}	
+
+class Implementation1Factory implements ServiceFactory {
+  public Service getService() {
+    return new Implementation1();
+  }
+}
+
+class Implementation2 implements Service {
+  Implementation2() {} // Package access
+  public void method1() {print("Implementation2 method1");}
+  public void method2() {print("Implementation2 method2");}
+}
+
+class Implementation2Factory implements ServiceFactory {
+  public Service getService() {
+    return new Implementation2();
+  }
+}	
+
+public class Factories {
+  public static void serviceConsumer(ServiceFactory fact) {
+    Service s = fact.getService();
+    s.method1();
+    s.method2();
+  }
+  public static void main(String[] args) {
+    serviceConsumer(new Implementation1Factory());
+    // Implementations are completely interchangeable:
+    serviceConsumer(new Implementation2Factory());
+  }
+} /* Output:
+Implementation1 method1
+Implementation1 method2
+Implementation2 method1
+Implementation2 method2
+*///:~
+```
+
+## 9.10 总结
+
+# 第十章 内部类
+
+可以将一个类的定义放在另一个类的定义内部，这就是内部类。
+
+## 10.1 创建内部类
+
+把累的定义置于外围类里面。
+
+## 10.2  链接到外部类
+
+当生成一个内部类对象时，此对象与制造它的外围对象之间就有了一种联系，所以他能访问其他外围对象的所有成员，而不需要任何特殊条件。此外，内部类还拥有其外围类的所有元素的访问权。
+
+## 10.3 使用 .this 与 .new
 
 
 
