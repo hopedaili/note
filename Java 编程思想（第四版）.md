@@ -1998,6 +1998,305 @@ Implementation2 method2
 
 ## 10.3 使用 .this 与 .new
 
+如果需要生成对外部类对象的引用，可以使用外部类的名字后面紧跟圆点和 this。这样产生的引用自动地具有正确的类型，这一点在编译器就被知晓并受到检查，因此没有任何运行时开销。
+
+```java
+//: innerclasses/DotThis.java
+// Qualifying access to the outer-class object.
+
+public class DotThis {
+  void f() { System.out.println("DotThis.f()"); }
+  public class Inner {
+    public DotThis outer() {
+      return DotThis.this;
+      // A plain "this" would be Inner's "this"
+    }
+  }
+  public Inner inner() { return new Inner(); }
+  public static void main(String[] args) {
+    DotThis dt = new DotThis();
+    DotThis.Inner dti = dt.inner();
+    dti.outer().f();
+  }
+} /* Output:
+DotThis.f()
+*///:~
+```
+
+有时你可能想要告知某些其他对象，去创建其某个内部类的对象。要实现此目的，必须在 new 表达式中提供对其他外部类对象的引用，这时需要使用 .new 语法。
+
+```java
+//: innerclasses/DotNew.java
+// Creating an inner class directly using the .new syntax.
+
+public class DotNew {
+  public class Inner {}
+  public static void main(String[] args) {
+    DotNew dn = new DotNew();
+    DotNew.Inner dni = dn.new Inner();
+  }
+} ///:~
+```
+
+想直接创建内部类的对象，必须使用外部类的对象来创建该内部类对象。这也解决了内部类名字作用域的问题，因此你不必声明（实际上你不能声明） dn.new DotNet.Inner()。
+
+在拥有外部类对象之前是不可能创建内部类对象的。这是因为内部类对象会暗暗地链接到创建它的外部类对象上。但是，如果创建的是嵌套类（静态内部类），那么他就不需要对外部类对象的引用。
+
+## 10.4 内部类与向上转型
+
+当将内部类向上转型为其基类，尤其是转型为懿哥接口的时候，内部类就有了用武之地。这是因为此内部类--某个接口的实现--能够完全不可见，并且不可用。所得到的只是指向基类或接口的引用，所以能够方便地隐藏实现细节。
+
+```java
+//: innerclasses/TestParcel.java
+
+class Parcel4 {
+  private class PContents implements Contents {
+    private int i = 11;
+    public int value() { return i; }
+  }
+  protected class PDestination implements Destination {
+    private String label;
+    private PDestination(String whereTo) {
+      label = whereTo;
+    }
+    public String readLabel() { return label; }
+  }
+  public Destination destination(String s) {
+    return new PDestination(s);
+  }
+  public Contents contents() {
+    return new PContents();
+  }
+}
+
+public class TestParcel {
+  public static void main(String[] args) {
+    Parcel4 p = new Parcel4();
+    Contents c = p.contents();
+    Destination d = p.destination("Tasmania");
+    // Illegal -- can't access private class:
+    //! Parcel4.PContents pc = p.new PContents();
+  }
+} ///:~
+```
+
+private 内部类给类的设计者提供了一种途径，通过这种方式可以完全阻止任何依赖于类型的编码，并且完全隐藏了实现的细节。此外，从客户端程序员的角度来看，由于不能访问任何新增加的、原本不属于公共接口的方法，所以扩展接口是没有价值的。
+
+**没看明白说啥，就知道 private 修饰的内部类，没法访问。**
+
+## 10.5 在方法和作用域内的内部类
+
+可以在一个方法里面或者在任意的作用域内定义内部类。这么做有两个理由：
+
+1. 如前所示，你实现了某类型接口，于是可以创建并返回对其的引用。
+2. 你要解决一个复杂的问题，想创建一个类来辅助你的解决方案，但是又不希望这个类是公共可用的。
+
+在方法的作用域内（而不是其他的作用域内）创建一个完整的类。这被称作局部内部类：
+
+```java
+//: innerclasses/Parcel5.java
+// Nesting a class within a method.
+
+public class Parcel5 {
+  public Destination destination(String s) {
+    class PDestination implements Destination {
+      private String label;
+      private PDestination(String whereTo) {
+        label = whereTo;
+      }
+      public String readLabel() { return label; }
+    }
+    return new PDestination(s);
+  }
+  public static void main(String[] args) {
+    Parcel5 p = new Parcel5();
+    Destination d = p.destination("Tasmania");
+  }
+} ///:~
+```
+
+PDestination 类是 destination() 方法的一部分，而不是 Parcel5 的一部分。所以，在 destination() 之外不能访问 PDestination。
+
+在任意的作用域内嵌入一个内部类：
+
+```java
+//: innerclasses/Parcel6.java
+// Nesting a class within a scope.
+
+public class Parcel6 {
+  private void internalTracking(boolean b) {
+    if(b) {
+      class TrackingSlip {
+        private String id;
+        TrackingSlip(String s) {
+          id = s;
+        }
+        String getSlip() { return id; }
+      }
+      TrackingSlip ts = new TrackingSlip("slip");
+      String s = ts.getSlip();
+    }
+    // Can't use it here! Out of scope:
+    //! TrackingSlip ts = new TrackingSlip("x");
+  }	
+  public void track() { internalTracking(true); }
+  public static void main(String[] args) {
+    Parcel6 p = new Parcel6();
+    p.track();
+  }
+} ///:~
+```
+
+TrackingSlip 类被镶嵌如 if 语句的作用域内，在定义 TrackingSlip 的作用域之外，它是不可用的。
+
+## 10.6 匿名内部类
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
