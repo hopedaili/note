@@ -1,3 +1,5 @@
+# 知识点
+
 ### dependencyManagement 和 dependencies 的区别？
 
 > Maven 使用 dependencyManagement 元素提供一种管理依赖版本号的方式。
@@ -153,9 +155,105 @@
 >
 > 在使用 @RequestMapping 后，返回值通常解析为跳转路径，但加上 @responseBody 后返回结果不会被解析为跳转路径，而是直接写入 HTTP response body 中。比如异步获取 json 数据，加上 @ResponseBody 后，会直接返回 json 数据。
 
+# 父工程步骤
+
+1. New Project
+
+2. 聚合总父工程名字
+
+3. Maven 选版本
+
+4. 工程名字
+
+5. 字符编码
+
+   Settings-->Editor-->File Encodings
+
+   全部修改为 utf-8
+
+6. 注解生效激活
+
+   Settings-->Build-->Complier-->Annotation Processors
+
+   Default-->Enable annotation processing
+
+7. java版本编译选择
+
+   Settings-->Build-->Complier-->Java Complier
+
+8. File Type 过滤
+
+   Settings-->Editor-->File types-->ActionScript
 
 
-  
+
+
+
+# Eureka 服务注册与发现
+
+## Eureka 基础知识
+
+### 什么是服务治理？
+
+Spring Cloud 封装了 Netflix 公司开发的 Eureka 模块来实现服务治理。
+
+在传统的 rpc 远程调用框架中，管理每个服务与服务之间依赖关系比较复杂，管理比较复杂，所以需要使用服务治理，管理服务与服务之间依赖关系，可以实现服务调用、负载均衡、容错等，实现服务发现与注册。
+
+###  什么是服务注册与发现？
+
+Eureka 采用了 CS 的设计架构，Eureka Server 作为服务这侧功能的服务器，他是服务注册中心。而系统中的其他微服务，使用 Eureka 的客户端连接到 Eureka Server 并位置心跳连接。这样系统的维护人员就可以通过 Eureka Server 来监控系统中各个微服务是否正常运行。
+
+在服务注册与发现中，有一个注册中心。当服务器启动的时候，会把当前自己服务器的信息，比如，服务地址、通讯地址等以别名的方式注册到注册中心上。另一方（消费者|服务提供者），以该别名的方式去注册中心上获取到时机的服务通讯地址，然后在实现本地 RPC 远程调用框架核心设计思想：在于这侧中心，因为使用注册中心管理每个服务与服务器之间的一个依赖关系（服务治理概念）。在任何 rpc 远程框架中，都会有一个注册中心（存放服务地址相关信息（接口地址））。
+
+### Eureka 包含两个组件：Eureka Server 和 Eureka Client
+
+#### Eureka Server 提供服务注册服务
+
+各个微服务节点通过配置启动后，会在 Eureka Server 中进行注册，这样 Eureka Server 中的服务注册中将会有可用服务节点的信息，服务节点的信息可以在界面中直观看到。
+
+#### Eureka Client 通过注册中心进行访问
+
+是一个 Java 客户端，用于简化 Eureka Server 的交互，客户端同时也具备一个内置的、使用轮询（round-robin）负载算法的负载均衡器。在应用启动后，将会向 Eureka Server 发送心跳（默认周期为30s）。如果Eureka Server 在多个心跳周期内没有接收到某个节点的心跳，Eureka Server 将会从服务注册表中吧这个服务节点移除（默认90s）。
+
+## 单机 Eureka 构建步骤
+
+### IDEA 生成 Eureka Server 端服务注册中心
+
+1. 建 Module
+
+   cloud-eureka-server7001
+
+2. 改 POM
+
+   1.x 和 2.x 对比
+
+   ```xml
+   <!--2018版本 eureka server-->
+   <dependency>
+       <groupId>org.springframework.cloud</groupId>
+       <artifactId>spring-cloud-starter-eureka</artifactId>
+   </dependency>
+   
+   <!--2020版本 eureka server-->
+   <dependency>
+       <groupId>org.springframework.cloud</groupId>
+       <artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
+   </dependency>
+   ```
+
+   
+
+3. 写 YML
+
+4. 主启动
+
+5. 测试
+
+
+
+### Eureka Client 端 cloud-prover-payment8001 将注册进 Eureka Server 成为服务提供者 provider
+
+### Eureka Client 端 cloud-consumer-order80 将注册进 Eureka Server 成为消费者 consumer
 
 
 
@@ -164,6 +262,14 @@
 
 
 
+
+## 集群 Eureka 构建步骤
+
+## actuator 微服务信息完善
+
+## 服务发现 Discovery
+
+## Eureka 自我保护
 
 
 
