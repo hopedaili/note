@@ -217,7 +217,7 @@ Eureka 采用了 CS 的设计架构，Eureka Server 作为服务这侧功能的�
 
 ## 单机 Eureka 构建步骤
 
-#### IDEA 生成 Eureka Server 端服务注册中心
+### IDEA 生成 Eureka Server 端服务注册中心
 
 1. 建 Module
 
@@ -249,13 +249,13 @@ Eureka 采用了 CS 的设计架构，Eureka Server 作为服务这侧功能的�
 
 5. 测试
 
-#### Eureka Client 端 cloud-prover-payment8001 将注册进 Eureka Server 成为服务提供者 provider
+### Eureka Client 端 cloud-prover-payment8001 将注册进 Eureka Server 成为服务提供者 provider
 
-#### Eureka Client 端 cloud-consumer-order80 将注册进 Eureka Server 成为消费者 consumer
+### Eureka Client 端 cloud-consumer-order80 将注册进 Eureka Server 成为消费者 consumer
 
 ## 集群 Eureka 构建步骤
 
-#### Eureka 集群原理说明
+### Eureka 集群原理说明
 
 **原理：互相注册，互相守望**
 
@@ -274,7 +274,7 @@ Eureka 采用了 CS 的设计架构，Eureka Server 作为服务这侧功能的�
 5. 消费者获得调用地址后，底层实际是利用 HttpClient 技术实现远程调用
 6. 消费者获得服务地址后会缓存本地 JVM 内存中，默认每间隔 30s 更新一次服务调用地址
 
-#### EurekaServer 集群环境构建步骤
+### EurekaServer 集群环境构建步骤
 
 1. 参考 cloud-eureka-server7001
 
@@ -296,17 +296,17 @@ Eureka 采用了 CS 的设计架构，Eureka Server 作为服务这侧功能的�
 
 
 
-#### 将支付服务8001微服务发布到上面两台 Eureka 集群配置中
+### 将支付服务8001微服务发布到上面两台 Eureka 集群配置中
 
 修改 YML 文件，defaultZone 修改为集群版
 
-#### 将订单服务80微服务发不到上面两台 Eureka 集群配置中
+### 将订单服务80微服务发不到上面两台 Eureka 集群配置中
 
 同上
 
-#### 测试01
+### 测试01
 
-#### 支付服务提供者8001集群环境构建
+### 支付服务提供者8001集群环境构建
 
 1. 参考 cloud-provider-payment8001
 2. 新建 cloud-provider-payment8002
@@ -316,23 +316,23 @@ Eureka 采用了 CS 的设计架构，Eureka Server 作为服务这侧功能的�
 6. 业务类
 7. 修改 8001/8002 的 Controller
 
-#### 负载均衡
+### 负载均衡
 
 1. 订单服务访问地址不能写死，换成服务名称
 2. 使用@LoadBalanced注解赋予RestTemplate负载均衡的能力
 3. ApplicationContextBean：Ribbon的负载均衡功能，默认轮询机制
 
-#### 测试02
+### 测试02
 
 
 
 ## actuator 微服务信息完善
 
-#### 主机名称：服务名称修改
+### 主机名称：服务名称修改
 
 yml 文件增加 instance-id
 
-#### 访问信息有 IP 信息显示
+### 访问信息有 IP 信息显示
 
 yml 文件增加 prefer-ip-address
 
@@ -340,31 +340,200 @@ yml 文件增加 prefer-ip-address
 
 ## 服务发现 Discovery
 
+### 对于注册进 Eureka 里面的微服务，可以通过服务发现来获得该服务的信息
 
 
 
+### 修改 cloud-provider-payment8001 的 Controller
+
+
+
+### 8001 主启动类
+
+@EnableDiscoveryClient
+
+### 自测
 
 
 
 ## Eureka 自我保护
 
+### 故障现象
 
+概述：
 
+保护模式主要用于一组客户端和 Eureka Server 之间存在网络分区场景下的保护。一旦进入保护模式，Eureka Server 将会尝试保护其服务注册表中的信息，不再删除服务注册表中的数据，也就是不会注销任何微服务。
 
+### 导致原因
 
+某时刻一个微服务不可用了，Eureka 不会立即清理，依旧会对该微服务的信息进行保存。
 
+属于 CAP 里面的 AP 分支。
 
+#### **为什么会产生 Eureka 自我保护机制？**
 
+为了防止 Eureka Client 可以正常运行，但是与 Eureka Server 网络不通情况下，Eureka Server 不会立即将 Eureka Client 服务剔除。
 
+#### **什么是自我保护模式？**
 
+默认情况下，如果 Eureka Server 在一定时间内没有接收到某个微服务实例的心跳，Eureka Server 将会注销该实例（默认90s）。但是当网络分区故障发生（延时、卡顿、拥挤）时，微服务与 Eureka Server 之间无法正常通信，以上行为可能变得非常危险了--因为微服务本身其实是健康的，此时本不该注销这个微服务。Eureka通过“自我保护模式来解决这个问题”--当Eureka Server 节点在短时间内丢失过多客户端时（可能放生了网络分区故障），那么这个节点就会进入自我保护模式。
 
+### 怎么禁止自我保护
 
+#### 注册中心 Eureka Server 端 7001
 
+1. 出场默认，自我保护机制是开启的，eureka.server.enable-self-preservation=true
+2. 使用 eureka.server.enable-self-preservation=false 可以禁用自我保护
+3. 关闭效果
+4. 在 Eureka Server 端7001 处设置关闭自我保护机制
 
+#### 生产者客户端 Eureka Client 端 8001
 
+## Eureka 停更说明
 
+# zookeeper
 
+## 注册中心 Zookeeper
 
+zookeeper 是一个分布式协调工具，可以实现注册中心功能。
+
+关闭 Linux 服务器放火前后启动 zookeeper 服务器。
+
+zookeeper 服务器取代 Eureka 服务器，zk 作为服务注册中心。
+
+## 服务提供者
+
+步骤：
+
+1. 新建 cloud-provider-payment8004
+
+2. POM
+
+3. YML
+
+4. 主启动类
+
+5. Controller
+
+6. 启动 8004 注册进 zookeeper
+
+   启动后 jar 包版本冲突问题
+
+   修改 pom 排除自带的 zookeeper3.5.3
+
+7. 验证测试
+
+8. 验证测试2
+
+9. 思考
+
+   服务节点是临时节点还是持久节点：临时节点
+
+## 服务消费者
+
+1. 新建 cloud-consumerzk-roder80
+2. POM
+3. YML
+4. 主启动
+5. 业务类
+6. 验证测试
+7. 访问测试地址
+
+# Consul服务注册与发现
+
+## Consul 简介
+
+### 是什么？
+
+Consul 是一套开源的分布式服务发现和配置管理系统，由 HashiCorp 公司用 Go 语言开发。
+
+提供了微服务系统中的服务治理、配置中信、控制总线等功能。这些功能中的每一个都可以根据需要单独使用，也可以一起使用以构建安全方位的服务网络，总之 Consul 提供了一种完整的服务网络解决方案。
+
+它具有很多优点。包括：基于 raft 协议，比较简洁；支持健康检查，同时支持HTTP 和 DNS 协议，支持跨数据中心的 WAN 集群，提供图形界面，跨平台，支持 Linux，Mac，Windows。
+
+### 能干嘛？
+
+服务发现：提供 HTTP 和 DNS 两种发现方式
+
+健康监测：支持多种方式，HTTP、TCP、Docker、Shell 脚本定制化
+
+KV 存储：Key、Value 的存储方式
+
+多数据中心：Consul 支持多数据中心
+
+可视化 Web 界面：可视化
+
+### 去哪下？
+
+consul.io
+
+### 怎么玩？
+
+中文：https://www.springcloud.cc/spring-cloud-consul.html
+
+## 安装并运行Consul
+
+使用开发者模式启动：`consul agent -dev`
+
+通过以下地址访问Consul的首页：http://localhost:8500
+
+## 服务提供者
+
+1. 新建Module支付服务 provider8006
+
+   cloud-providerconsul-payment8006
+
+2. POM
+3. YML
+4. 主启动
+5. 业务类
+6. 验证测试
+
+## 服务消费者
+
+1. 新建 Module 消费者服务 order80 
+
+   cloud-consumerconsul-order80
+
+2. POM
+
+3. YML
+
+4. 主启动
+
+5. 配置 Bean
+
+6. Controller
+
+7. 验证测试
+
+8. 访问测试地址
+
+## 三个注册中心异同
+
+CAP
+
+C：Consistency（强一致性）
+
+A：Availability（可用性）
+
+P：Partition tolerance（分区容错性）
+
+CAP 理论关注粒度是数据，而不是整体系统设计。
+
+CAP 理论的核心：一个分布式系统不可能同时很好的满足一致性、可用性和分区容错性这三个需求，因此，根据 CAP原理将 NoSQL 数据库分成了满足 CA 原则、满足 CP 原则、和满足 AP 原则三大类。
+
+CA-单点集群，满足一致性，可用性的系统，通常可扩展性上不太强大。
+
+CP-满足一致性，分区容忍行的系统，通常性能不是特别高。
+
+AP-满足可用性，分区容忍性的系统，通常可能对一致性要求低一些。
+
+AP（Eureka）
+
+CP（ZK/Consul）
+
+# Ribbon 负载均衡服务调用
 
 
 
