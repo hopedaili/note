@@ -535,7 +535,153 @@ CP（ZK/Consul）
 
 # Ribbon 负载均衡服务调用
 
+## 概述
 
+Spring Cloud Ribbon 是基于 Nextflix Ribbon 实现的一套客户端负载均衡的工具。
+
+Ribbon 是Netflix 发布的开源项目，主要功能是提供客户端的软件负载均衡算法和服务调用。Ribbon 客户端组件提供一系列完善的配置项入连接超时，重试等。简单的说，就是在配置文件中列出 Load Balancer （简称LB） 后面所有的机器，Ribbon 会自动的帮助你基于某种规则（如简单轮询，随机连接等）去连接这些机器。我们很容易使用 Ribbon 实现自定义的负载均衡算法。
+
+一句话：负载均衡 + RestTemplate 调用
+
+官网：https://github.com/Nextflix/ribbon/wiki/Getting-Started
+
+Ribbon 目前也进入维护模式。
+
+### 负载均衡（LB）
+
+1. 集中式 LB 
+
+   即在服务的消费方和提供方之间独立的 LB 设施（可以是硬件，如 F5；也可以是软件，如 Nginx），由该设施负载把访问请求通过某种策略转发至服务的提供方。
+
+2. 进程内 LB 
+
+   将 LB 逻辑集成到消费方，消费方从服务注册中心获知有哪些地址可用，然后自己再从这些地址中选在处一个合适的服务器。Ribbon 就属于进程内 LB，他只是一个类库，集成于消费方进程，消费方通过它来获取到服务提供方的地址。
+
+#### LB负载均衡（Load Balance）是什么？
+
+简答的说就是将用户的请求平摊的分配到多个服务上，从而达到系统的 HA（高可用）。
+
+常见的负载均衡软件有 Nginx，LVS，硬件 F5 等。
+
+#### Ribbon 本地负载均衡客户端 VS Nginx 服务端负载均衡区别？
+
+Nginx 是服务端负载均衡，客户端所有请求都会交给 nginx，然后由 nginx 实现转发请求。即负载均衡是由服务端实现的。
+
+Ribbon 本地负载均衡，在调用微服务接口的时候，会在注册中心上获取注册信息服务列表之后缓存到 JVM 本地，从而在本地实现 RPC 远程服务调用技术。
+
+## Ribbon 负载均衡演示
+
+### 架构说明
+
+总结：Ribbon 其实就是一个软负载均衡的客户端组件，他可以和其他所需请求的客户端结合使用，和 Eureka 结合只是其中的一个实例。
+
+**Ribbon 在工作时分成两步**
+
+第一步先选择 EurekaServer，它优先选择在同一个区域内负载较少的Server。
+
+第二步再根据用户指定的策略，再从 server 取到的服务注册列表中选择一个地址。
+
+其中 Ribbon 提供了多种策略：比如轮询、随机和根据响应时间加权。
+
+### POM
+
+spring-cloud-start-netflix-rureka-client 自带了 spring-cloud-starter-ribbon。
+
+自己引入写法：
+
+```xml
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+</dependency>
+```
+
+### RestTemplate 使用
+
+#### getForObject 方法，getForEntity 方法
+
+getForObject 方法返回对象为响应体中数据转化成的对象，基本上可以理解为 Json。
+
+getForEntity 方法返回对象为 ResponseEntity 对象，包含了响应中的一些重要信息，比如响应头、响应状态码，响应体等。
+
+#### postForObject 方法，postForEntity 方法
+
+#### GET 请求方法
+
+#### POST 请求方法
+
+## Ribbon 核心组件 IRule
+
+**IRule：根据特定算法中从服务列表中选取一个要访问的服务。**
+
+**自带 7 种：**
+
+1. com.netflix.loadbalancer.RoundRobinRule 轮询
+2. com.netflix.loadbalancer.RandomRule 随机
+3. com.netflix.loadbalancer.RetryRule 先按照 RoundRobinRule  的策略获取服务，如果获取失败则在指定时间内会进行重试，获取可用的服务。
+4. WeightedResponseTimeRule 对 RoundRobinRule 的扩展，响应速度越快的实例选择权重越大，越容易被选择。
+5. RestAvailableRule 会先过滤掉由于多次访问故障而处于断路器跳闸状态的服务，然后选择一个并发量最小的服务。
+6. AvilabilityFilteringRule 先过滤掉故障实例，再选择并发较小的实例。
+7. ZoneAvoidanceRule 默认规则，符合判断 server 所在区域的性能和 server 的可用性选择服务器
+
+**如何替换？**
+
+1. 修改 cloud-consumer-order80
+
+2. 注意配置细节
+
+   官方文档明确给出了警告：
+
+   这个自定义配置类不能放在@ComponentScan 所扫描的当前包下及子包下，否则我们自定义的这个配置类就会被所有的 Ribbon 客户端所共享，达不到特殊化定制的目的了。
+
+3. 新建packge：com.atguigu.myrule
+
+4. 上面包下新建 MySelfRule 规则类
+
+5. 主启动添加@RibbonClient
+
+6. 测试
+
+## Ribbon 负载均衡算法
+
+### 原理
+
+负载均衡算法：rest 接口第几次请求数 % 服务器集群总数量=实际调用服务器位置下标，每次服务重启后 rest 接口计数从 1 开始。
+
+```java
+List<ServiceInstance> instances = discoveryClient.getInstances("cloud-payment-service");
+```
+
+例如：
+
+```java
+List[0] instances = 127.0.0.1:8002
+List[1] instances = 127.0.0.1:8001
+```
+
+请求数为 1 时：1 % 2 = 1 对应下标为 1，获取服务器地址为 127.0.0.1:8001
+
+请求数为 2 时：2 % 2 = 0 对应下标为 0，获取服务器地址为 127.0.0.1:8002
+
+···
+
+### 源码
+
+
+
+### 手写
+
+7001/7002 集群启动
+
+8001/8002 微服务改造-controller
+
+80 订单为服务改造
+
+1. ApplicationContextBean 去掉注解@LoadBalanced
+2. LoadBalancer 接口
+3. MyLB
+4. OrderController
+5. 测试 http://localhost.consumer.payment/lb
 
 
 
