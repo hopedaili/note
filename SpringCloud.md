@@ -646,6 +646,8 @@ getForEntity 方法返回对象为 ResponseEntity 对象，包含了响应中的
 
 ### 原理
 
+原理+JUC（CAS+自旋锁复习）
+
 负载均衡算法：rest 接口第几次请求数 % 服务器集群总数量=实际调用服务器位置下标，每次服务重启后 rest 接口计数从 1 开始。
 
 ```java
@@ -683,9 +685,55 @@ List[1] instances = 127.0.0.1:8001
 4. OrderController
 5. 测试 http://localhost.consumer.payment/lb
 
+# OpenFeign 服务接口
 
+## 概述
 
+### OpenFeign 是什么
 
+Feign 是一个声明式 WebService 客户端。使用 Feign 能让编写 Web Service 客户端更加简单。它使用方法是定义一个服务接口然后在上面添加注解。Feign 也支持可拔插式的编码器和解码器。Spring Cloud 对 Feign 进行了封装，使其支持了 Spring MVC 标准注解和 HttpMessageConverters。Feign 可以与 Eureka 和 Ribbon 组合使用以支持负载均衡。
+
+### OpenFeign 能干什么
+
+Feign 旨在使编写 Java Http 客户端变得更容易。在使用Ribbon+RestTemplate 时，利用 RestTemplate 对 http 请求的封装处理，形成了一套模板化的调用方法。但在实际开发中，由于对服务依赖的调用可能不止一处，往往一个接口会被多处调用，所以通常都会针对每个微服务自行封装一些客户端类来包装这些以来服务的调用。所以，Fegin在此基础上作了进一步封装，由于他来帮助我们定义和实现依赖服务接口的定义。在 Fegin 的是现在，我们只需要创建一个接口并使用租借的方式来配置它（类似Dao接口上面标注Mapper注解），即可完成对服务提供方的接口绑定，简化了使用Spring cloud Ribbon 时，自动封装服务调用客户端的开发量。
+
+Fegin 集成了 Ribbon，利用 Ribbon 维护了 Payment 的服务列表信息，并通过轮询实现了客户端的负载均衡。而与 Ribbon 不同的时，通过 Fegin 只需要定义服务绑定接口且以声明式的方法，优雅而简单的实现服务调用。
+
+### Feign 和 OpenFeign 两者区别
+
+OpenFegin 是 Spring Cloud 在 Fegin 的基础上支持了 SpringMVC 的注解，如果@RequestMapping等。OpenFegin 的@FeginClient 可以解析 SpringMVC 的@RequestMapping 注解下的接口，并通过动态代理的方式产生实现类，实现类中左负载均衡并调用其它服务。
+
+## OpenFeign 使用步骤
+
+1. 接口+注解
+
+   为服务调用接口+@FeignClient
+
+2. 新建 cloud-consumer-feign-order80
+
+3. POM
+
+4. YML
+
+5. 主启动
+
+   @EnableFeignClients
+
+6. 业务类
+
+   业务逻辑接口+@FeignClient 配置调用 provider 服务
+
+   新建 PaymentFeignService 接口并新增注解@FeignClient
+
+   控制层 Controller
+
+7. 测试
+
+8. 小结
+
+## OpenFeign 超时控制
+
+## OpenFeign 日志打印功能
 
 
 
