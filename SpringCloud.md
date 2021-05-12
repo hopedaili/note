@@ -737,25 +737,73 @@ OpenFegin 是 Spring Cloud 在 Fegin 的基础上支持了 SpringMVC 的注解�
 
 
 
+# stream
 
+屏蔽底层消息中间件的差异，境地切换成本，同意消息的编程模型。
 
+目前仅支持 RabbitMQ、Kafka。
 
+stream 中的消息通信方式遵循发布-订阅模式。
 
+## binder
 
+通过定义绑定器 Binder 作为中间层，实现了应用程序与消息中间件细节之间的隔离。
 
+binder：很方便的连接中间件，屏蔽差异。
 
+channel：通道，是队列 queue 的一种抽象，在消息通讯中就是实现存储和转发的媒介，通过 channel 对队列进行配置。
 
+source 和 sink：简单的可以理解为参照对象是 spring cloud stream 自身，从stream发布消息就是输出，接收消息就是输入。
 
+## 编码 API 和常用注解
 
+@Input：注解标识输入通道，通过该输入通道接收到的消息进入应用程序。
 
+@Output：注解标识输出通道，发布的消息将通过该通道离开应用程序。
 
+@StreamListener：监听队列，用于消费者的队列的消息接收。
 
+@EnableBinding：指信道 channel 和 exchange 绑定在一起。
 
+## 重复消费及持久化
 
+默认不通分组，不通分组之间全面消费。
 
+若想避免重复消费，需把应用归为同一组，竞争关系可避免重复消费。方法：yml 添加 group 关键字，自定义 group。
 
+持久化方法：yml 添加 group 关键字。
 
+# sleuth
 
+概述：微服务框架中，一个由客户端发起的请求在后端系统中会经过多个不同的服务节点调用来协同生产最后的请求结果，每一个前段请求都会形成一条复杂的分布式服务调用链路，链路中的任何一环出现高延时或错误都会引起整个请求最后的失败。
+
+#  Spring Cloud Alibaba
+
+# Nacos
+
+Nacos 就是注册中心+配置中心的组合，Nacos=Eureka+Config+Bus。
+
+## 安装并运行 Nacos
+
+1. 环境需求： Java8+Maven
+2. 官网下载 Nacos
+3. 解压安装包，运行 bin 目录下的 startup.cmd，单机模式启动（startup.cmd -m standalone）
+4. 命令运行成功后直接访问 http://localhost:8848/nacos，默认账号密码都是 nacos
+
+## Nacos 作为服务注册中心演示
+
+### 基于 Nacos 的服务提供者
+
+1. 新建Module cloudalibaba-provider-payment9001
+2. pom
+3. yml
+4. 主启动
+5. 业务类
+6. 测试
+
+## Nacos 作为服务配置中心演示
+
+## Nacos 集群和持久化配置（重要）
 
 
 
