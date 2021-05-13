@@ -794,20 +794,174 @@ Nacos 就是注册中心+配置中心的组合，Nacos=Eureka+Config+Bus。
 
 ### 基于 Nacos 的服务提供者
 
-1. 新建Module cloudalibaba-provider-payment9001
+1. 新建 Module cloudalibaba-provider-payment9001
 2. pom
 3. yml
 4. 主启动
 5. 业务类
 6. 测试
+7. 同理创建9002
+
+### 基于 Nacos 的服务消费者
+
+1. 新建 Module cloudalibaba-consumer-nacos-order83
+
+2. POM 为什么 Nacos 支持负载均衡
+
+3. YML
+
+4. 主启动
+
+5. 业务类
+
+   ApplicationContextBean
+
+   OrderNacosController
+
+6. 测试
+
+### 服务注册中心对比
+
+Nacos 支持 CP 和 AP 切换。
+
+C 是所有节点在同一时间看到的数据是一致的；而 A 的定义是所有的请求都会收到响应。
+
+何时选择使用何种模式？
+
+如果不需要存储服务级别的信息且服务实例是通过 nacos-client 注册，并且能够保持心跳上传，那么可以选择 AP 模式。当前主流服务如 Spring Cloud 和 Bubbo 服务，都适用于 AP 模式，AP 模式为了服务的可能性而减弱了一致性，因此 AP 模式下只支持注册临时实例。
+
+如果需要在服务界别编辑或者存储配置信息，那么 CP 是必须的，K8S 服务和 DNS 服务则适用于 CP 模式。CP模式下侧支持注册持久化实例，此时则是以 Raft 协议为集群运行模式，该模式下注册实例之前必须先注册服务，如果服务不存在，则会返回错误。
+
+curl -X PUT '$NACOS_SERVER:8848/nacos/v1/ns/operator/switches?entry=serverMode&value=CP'
 
 ## Nacos 作为服务配置中心演示
 
+### Nacos 作为配置中心-基础配置
+
+1. Module cloudalibaba-config-nacos-client3377
+
+2. POM
+
+3. YML
+
+   两个配置：bootstrap、application
+
+   Nacos 同 springcloud-config 一样，在项目初始化时，要保证先从配置中心进行配置拉取，拉取配置之后，才能保证项目正常启动。
+
+   springboot 中配置文件的加载时存在优先级顺序的，bootstrap 优先级高于 application。
+
+4. 主启动
+
+5. 业务类
+
+   ConfigClientController
+
+   @RefreshScope 通过 Spring Cloud 原生注解 @RefreshScope  实现配置自动更新
+
+6. 在 Nacos 中添加配置信息
+
+   Nacos 中的配置规则：
+
+   理论：Nacos 中的 dataid 的组成格式及与 SpringBoot 配置文件中的陪陪规则
+
+   实操：
+
+   公式：\${spring.application.name}-\${spring.profile.active}.${spring.cloud.nacos.config.file-extension}
+
+7. 测试
+
+   启动前需要在 Nacos 客户端-配置管理-配置管理栏目下有对应的 yaml 配置文件
+
+   运行 cloud-config-nacos-client3377 的住启动类
+
+   调用接口查看配置信息：http://localhost:3377/config/info
+
+8. 自带动态刷新
+
+   修改 Nacos 中的 yaml 配置文件，再次调用查看配置的接口，发现配置已经刷新
+
+### Nacos 作为配置中心-分类配置
+
+#### 问题，多环境多项目管理
+
+问题1：
+
+实际开发中，通常一个系统会准备：dev、test、prod 环境，如何保证指定环境启动时服务能争取读取到 Nacos 上相应环境的配置文件。
+
+问题2：
+
+一个大型分布式微服务系统会有很多微服务子项目，每个微服务项目又会有相应的卡法环境、测试环境，那怎么对这些微服务配置进行管理？
+
+#### Nacos 的图形化管理界面
+
+配置管理
+
+命名空间
+
+#### Namespace+Group+DateID 三者关系？为什么这么设计？
+
+类似 Java 里面的 package 名和类名，最外层的 namespace 是可以用于区分部署环境的，Group 和DataId 逻辑上区分两个目标对象。
+
+默认情况：
+
+Namespace=public，Group=DEFAULT_GROUP，默认 Cluster 是DEFAULT。
+
+Namespace 主要用来实现隔离（dev、test、prod环境）。
+
+Group 可以把不同的微服务划分到同一个分组里面。
+
+Service 是微服务，一个 Service 可以包含多个 Cluster。
+
+#### Case 三种方案加载配置
+
+DataId 方案：
+
+1. 指定 spring.profile.active 和配置文件的 DataId 来是不同环境下读取不同的配置。
+
+2. 默认空间+默认分组+新建 dev 和 test 两个DataId。
+
+3. 通过 spring.profile.active 属性就能进行多环境下配置文件的读取。
+
+Group 方案：
+
+1. 通过 Group 实现环境区分。
+
+2. 在 Nacos 图形界面控制台上新建配置文件 DataId。
+
+3. bootstrap+application。
+
+   在 config 下增加一条 group 的配置即可。可配置为 DEV_GROUP或TEST_GROUP
+
+Namespace 方案：
+
+1. 新建 dev/test 的 Namespace。
+2. 回到服务管理-服务列表查看。
+3. 按照域名配置填写
+4. YML
+
 ## Nacos 集群和持久化配置（重要）
 
+默认 Nacos 使用嵌入式数据库实现数据存储。所以如果启动多个默认配置下的Nacos 节点，数据存储是存在一致性问题的。为了解决这个问题，Nacos 采用了集中式存储的方式来支持集群化部署，目前只支持 MySQL 的存储。
 
+### Nacos 支持三种部署模式
 
+- 单机模式-用于测试和单机使用
+- 集群模式-用于生产环境，确保高可用。
+- 多集群模式-用于多数据中心场景。
 
+### Nacos 持久化配置解释
+
+1. Nacos 默认自带的是嵌入式数据库 derby
+
+   https://github.com/alibaba/nacos/blob/develop/config/pom.xml
+
+2. derby 到 mysql 切换配置步骤
+
+   nacos-server-1.1.4\nacos\conf 目录下找到sql脚本：nacos-mysql.sql
+
+   nacos-server-1.1.4\nacos\conf 目录下找到 application.properties
+
+3. 启动 Nacos，可以看到是个全新的空记录界面，以前记录的是 derby
 
 
 
