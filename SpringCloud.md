@@ -735,7 +735,72 @@ OpenFegin 是 Spring Cloud 在 Fegin 的基础上支持了 SpringMVC 的注解�
 
 ## OpenFeign 日志打印功能
 
+# Gateway
 
+## 概述
+
+Gateway 旨在提供一种简单而有效的方式来对 API 进行路由，以及提供一些强大的过滤功能，例如：熔断、限流、重试等。
+
+功能：反向代理、鉴权、流量控制、熔断、日志监控等。
+
+## 三大核心概念
+
+**Route（路由）：**路由是构建网关的基本模块，它由 ID，目标 URI，一些列的断言和过滤器组成，如果断言为 true 则匹配该路由。
+
+**Predicate（断言）：**参考的是 Java 8 的 java.util.function.Predicate，开发人员可以匹配 HTTP 请求中的所有内容（例如请求头或者请求参数），如果请求与断言相匹配则进行路由。
+
+**Filter（过滤）：**指的是 Spring 框架中 GatewayFilter 的实例，是用过滤器，可以在请求被路由前或者之后对请求进行修改。
+
+## Gateway 工作流程
+
+客户端向 Spring Cloud Gateway 发出请求。然后再 Gateway Handler Mapping 中找到与请求相匹配的路由，将其发送到 Gateway Web Handler。
+
+Handler 再通过指定的过滤器链来将请求发送到我们实际的服务执行业务逻辑，然后返回。过滤器之间用虚线分开是因为过滤器可能会在发送代理请求之前（“pre”）或之后（“post”）执行业务逻辑。
+
+Filter 在 “pre” 类型的顾虑其可以做参数校验、权限校验、流量监控、日志输出、协议转换等，在 “post” 类型的过滤器中可以左响应内容、响应头的修改。
+
+## 入门配置
+
+1. 新建 Module cloud-gateway-gateway9527
+
+2. POM
+
+3. YML
+
+4. 业务类
+
+5. 主启动
+
+6. 9527 网关如何做路由映射
+
+   cloud-provider-payment8001 看看 controller 的访问地址
+
+   目前不想暴露 8001 端口，希望在 8001 外面套一层 9527
+
+7. YML 新增网关配置
+
+8. 测试
+
+9. YML 配置说明
+
+### Gateway 网关路由有两种配置方式：
+
+1. 在配置文件 yml 中配置
+2. 代码注入 RouteLocator 的 Bean
+
+## 通过微服务名称实现动态路由
+
+默认情况下 Gateway 会根据注册中心注册的服务列表，以注册中心上微服务名为路径创建动态路由进行转发，从而实现动态路由的功能。
+
+修改 YML。
+
+## Predicate 的使用
+
+
+
+## Filter 的使用
+
+自定义Filter
 
 # stream
 
@@ -961,9 +1026,28 @@ Namespace 方案：
 
    nacos-server-1.1.4\nacos\conf 目录下找到 application.properties
 
+   ```properties
+   db.num=1
+   db.url.0=jdbc:mysql://11.162.196.16:3306/nacos_devtest?characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true
+   db.user=nacos_devtest
+   db.password=youdontknow
+   ```
+
+   
+
 3. 启动 Nacos，可以看到是个全新的空记录界面，以前记录的是 derby
 
+### Linux 版 Nacos + Mysql 生产环境配置
 
+预计需要：1 个 Nginx + 3 个 nacos 注册中心 + 1 个 mysql
+
+Nacos 下载 linux 版本
+
+集群配置步骤
+
+测试
+
+高可用小总结
 
 
 
