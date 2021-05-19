@@ -842,6 +842,212 @@ source 和 sink：简单的可以理解为参照对象是 spring cloud stream �
 
 概述：微服务框架中，一个由客户端发起的请求在后端系统中会经过多个不同的服务节点调用来协同生产最后的请求结果，每一个前段请求都会形成一条复杂的分布式服务调用链路，链路中的任何一环出现高延时或错误都会引起整个请求最后的失败。
 
+# nginx
+
+## 1、基本概念
+
+### nginx 是什么，做什么事情
+
+nginx 是一个高性能的 HTTP 和反向代理服务器，特点是战友内存少，兵法能力强，事实上 nginx 的并发能力确实在同类型的网页服务器中表现较好。
+
+nginx 专门为性能优化而开发，性能是其最重要的考量，实现上非常注重效率，能经受高负载的考研，有报告表明能支撑高达 50000 个并发连接数。
+
+### 反向代理
+
+正向代理：在客户端（浏览器）配置代理服务器，通过代理服务器进行互联网访问。
+
+反向代理：客户端将请求发送到反向代理服务器，由反向代理服务器去选择目标服务器获取数据后，在返回给客户端，反向代理服务器和目标服务器对外是一个服务器，暴露的是代理服务器地址，隐藏了真是服务器 IP 地址。
+
+### 负载均衡
+
+单个服务器解决不了，增加服务器数量，然后将请求分发到各个服务器上，将原先请求集中到单个服务器上的情况改为将请求分发到多个服务器上，将负载分发到不同的服务器，就似乎负载均衡。
+
+### 动静分离
+
+为了加快网站的解析速度，可以把动态页面和静态页面由不同服务器来解析，加快解析速度。降低原来单个服务器压力。
+
+## 2、nginx 安装、常用命令和配置文件
+
+### 在 linux 系统中安装 nginx
+
+#### 安装编译工具及库文件
+
+```bash
+yum -y install make zlib zlib-devel gcc-c++ libtool  openssl openssl-devel
+或者下载依赖包自己安装
+openssl-fips-2.0.2.tar.gz
+zlib-1.2.7.tar.gz
+```
+
+
+
+#### 首先要安装 PCRE
+
+PCRE 作用是让 Nginx 支持 Rewrite 功能。
+
+1、下载 PCRE 安装包，下载地址： http://downloads.sourceforge.net/project/pcre/pcre/8.35/pcre-8.35.tar.gz
+
+```
+[root@bogon src]# cd /usr/local/src/
+[root@bogon src]# wget http://downloads.sourceforge.net/project/pcre/pcre/8.35/pcre-8.35.tar.gz
+```
+
+2、解压安装包:
+
+```
+[root@bogon src]# tar zxvf pcre-8.35.tar.gz
+```
+
+3、进入安装包目录
+
+```
+[root@bogon src]# cd pcre-8.35
+```
+
+4、编译安装 
+
+```
+[root@bogon pcre-8.35]# ./configure
+[root@bogon pcre-8.35]# make && make install
+```
+
+5、查看pcre版本
+
+```
+[root@bogon pcre-8.35]# pcre-config --version
+```
+
+#### 安装 Nginx
+
+1、下载 Nginx，下载地址：https://nginx.org/en/download.html
+
+```
+[root@bogon src]# cd /usr/local/src/
+[root@bogon src]# wget http://nginx.org/download/nginx-1.6.2.tar.gz
+```
+
+2、解压安装包
+
+```
+[root@bogon src]# tar zxvf nginx-1.6.2.tar.gz
+```
+
+3、进入安装包目录
+
+```
+[root@bogon src]# cd nginx-1.6.2
+```
+
+4、编译安装
+
+```
+不指定安装目录时，默认目录为 /usr/local/nginx
+[root@bogon nginx-1.6.2]# ./configure --prefix=/usr/local/webserver/nginx --with-http_stub_status_module --with-http_ssl_module --with-pcre=/usr/local/src/pcre-8.35
+[root@bogon nginx-1.6.2]# make
+[root@bogon nginx-1.6.2]# make install
+```
+
+5、查看nginx版本
+
+```
+[root@bogon nginx-1.6.2]# /usr/local/webserver/nginx/sbin/nginx -v
+```
+
+#### 查看开放的端口号
+
+```shell
+firewall-cmd --list-all
+```
+
+#### 设置开放的端口号
+
+```
+firewall-cmd -add-server=http -permanent
+sudo firewall-cmd -add-port=80/tcp --permanent
+```
+
+#### 重启防火墙
+
+```
+firewall-cmd --reload
+```
+
+### nginx 常用命令
+
+#### 使用 nginx 操作命令前提条件
+
+```
+必须进入 nginx 的目录 /usr/local/nginx/sbin
+```
+
+#### 查看 nginx 的版本号
+
+```
+./nginx -v
+```
+
+#### 启动 nginx
+
+```
+./nginx
+```
+
+#### 关闭 nginx
+
+```
+./nginx -s stop
+```
+
+#### 重新加载 nginx
+
+```
+./nginx -s reload
+```
+
+### nginx 配置文件
+
+#### 文件位置
+
+```
+/usr/local/nginx/conf/nginx.conf
+```
+
+#### 文件组成
+
+##### 第一部分：全局块
+
+从配置文件开始到 events 块之间的内容，主要会设置一些影响 nginx 服务器整体运行的配置指令。
+
+比如 worker_processes 1; 值越大，可以支持的并发处理量也越多。
+
+##### 第二部分：events 块
+
+events 块设计的指令主要影响 Nginx 服务器与用户的网络连接。
+
+比如 worker_connections 1024; 支持最大的连接数。
+
+##### 第三部分：http 块
+
+http 块是 nginx 服务器配置中最频繁的部分。
+
+http 块也可以包括 http 全局块，server 块。
+
+## 3、nginx 配置实例 1-反向代理
+
+
+
+## 4、nginx 配置实例 2-负载均衡
+
+## 5、nginx 配置实例 3-动静分离
+
+## 6、nginx 配置高可用集群
+
+## 7、nginx 原理
+
+
+
+
+
 #  Spring Cloud Alibaba
 
 # Nacos
@@ -1041,9 +1247,21 @@ Namespace 方案：
 
 预计需要：1 个 Nginx + 3 个 nacos 注册中心 + 1 个 mysql
 
-Nacos 下载 linux 版本
+#### 集群配置步骤
 
-集群配置步骤
+1. Linux 服务器上 mysql 数据库配置
+
+2. application.properties 配置
+
+3. Linux 服务器上 nacos 的集群配置 cluster.conf
+
+   IP 不能写 127.0.0.1，必须是 Linux 命令 hostname -i 能够识别的 IP
+
+4. 编辑 Nacos 的启动脚本 startup.sh，使它能够接受不同的启动端口
+
+5. Nginx 的配置，由它作为负载均衡
+
+6. 截至到此，1 个 Nginx + 3 个 nacos 注册中心 + 1 个 mysql
 
 测试
 
