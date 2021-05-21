@@ -1032,21 +1032,311 @@ http 块是 nginx 服务器配置中最频繁的部分。
 
 http 块也可以包括 http 全局块，server 块。
 
-## 3、nginx 配置实例 1-反向代理
+## 3、nginx 配置实例-反向代理
 
+### 反向代理实例-1
 
+#### 1、实现效果
 
-## 4、nginx 配置实例 2-负载均衡
+（1）打开浏览器，在浏览器地址栏输入地址：www.123.com，跳转到 linxu 系统 tomcat 主页面中
 
-## 5、nginx 配置实例 3-动静分离
+#### 2、准备工作
+
+（1）在linux 系统安装 tomcat，使用默认端口 8080。
+
+（2）对外开放访问的端口
+
+```shell
+firewall-cmd -add-port=8080/tcp --permanent
+firewall-cmd --reload
+//查看
+firewall-cmd --list-all
+```
+
+（3）在 windows 系统中通过浏览器访问 tomcat 服务
+
+#### 3、访问过程分析
+
+#### 4、具体操作
+
+第一步 在 windows 系统的 hosts 文件进行域名和 IP 对应关系的配置
+
+（1）192.168.200.131 www.123.com
+
+第二步 在 nginx 进行请求转发的配置
+
+```
+//server_name localhost 修改未具体ip
+server_name 192.168.200.131;
+//location 增加 proxy_pass
+proxy_pass http://127.0.0.1:8080;
+```
+
+### 反向代理实例-2
+
+#### 1、实现效果
+
+使用 nginx 反向代理，根据访问的路径跳转到不同端口的服务中，
+
+nginx 监听端口为 9001，
+
+访问 http://127.0.0.1:9001/edu/ 直接跳转到 127.0.0.1:8080，
+
+访问 http://127.0.0.1:9001/vod/ 直接跳转到 127.0.0.1:8081
+
+#### 2、准备工作
+
+（1）准备两个 tomcat 服务器，一个8080端口，一个 8081 端口。
+
+（2）创建文件夹和测试页面
+
+#### 3、具体配置
+
+（1）修改 nginx 配置文件
+
+```conf
+//添加新配置
+server{
+	listen 9001;
+	server_name 192.168.17.129;
+	
+	location ~ /edu/ {
+		proxy_pass http://127.0.0.1:8080;
+	}
+	location ~ /vod/ {
+		proxy_pass http://127.0.0.1:8081;
+	}
+}
+```
+
+（2）开放对外访问的端口号 9001 8080 8081
+
+#### 4、最终测试
+
+## 4、nginx 配置实例-负载均衡
+
+#### 1、实现效果
+
+（1）浏览器地址栏输入地址 http://192.168.17.129/edu/a.html，负载均衡效果，平均 8080 和 8081 款口中。
+
+#### 2、准备工作
+
+（1）准备两台 tomcat 服务器，一台 8080， 一台 8081.
+
+（2）在两台 tomcat 里面 webapps 目录中，创建名称是 edu 的文件夹，在 edu 文件夹中创建页面 a.html，用于测试。
+
+#### 3、配置 nginx 的配置文件
+
+```
+http{
+......
+	upstream myserver{
+		ip_hash; //ip_hash
+		server 192.168.200.131:8080 weight=1; //weight
+		server 192.168.200.131:8081 weight=1;
+		fair; //fair
+	}
+......
+	server{
+		......
+		server_name 192.168.200.131;
+		......
+		location / {
+			......
+			proxy_pass http://myserver;
+			proxy_connect_timeout 10;
+		}
+	}
+}
+```
+
+#### 4、nginx 分配服务器策略
+
+##### 1、轮询（默认）
+
+​	每个请求按时间顺序逐一分配到不懂的后端服务器，如果后端服务器 down 掉，能自动剔除。
+
+##### 2、weight
+
+​	weight 代表权，重默认为 1，权重越高北非配的客户越多。
+
+​	指定轮询几率，weight 和访问比率成正比，用于后端服务器性能不平均的情况。
+
+##### 3、ip_hash
+
+​	每个请求按访问 ip 的 hash 结果分配，这样每个方可固定访问一个后端服务器，可以解决 session 的问题。
+
+##### 4、fair（第三方）
+
+​	按后端服务器的响应时间来分配请求，响应时间越短的优先分配。
+
+## 5、nginx 配置实例-动静分离
+
+#### 1、什么是动静分离
+
+Nginx 动静分离简单来说就是把动态跟静态请求分开，不能理解成只是单纯的把动态页面和
+静态页面物理分离。严格意义上说应该是动态请求跟静态请求分开，可以理解成使用 Nginx
+处理静态页面，Tomcat 处理动态页面。
+
+动静分离从目前实现角度来讲大致分为两种，一种是纯粹把静态文件独立成单独的域名，放在独立的服务器上，也是目前主流推崇的方案；另外一种方法就是动态跟静态文件混合在一起发布，通过 nginx 来分开。通过 location 指定不同的后缀名实现不同的请求转发。通过 expires 参数设置，可以使浏览器缓存过期时间，减少与服务器之前的请求和流量。具体 Expires 定义：是给一个资源设定一个过期时间，也就是说无需去服务端验证，直接通过浏览器自身确认是否过期即可，所以不会产生额外的流量。此种方法非常适合不经常变动的资源。（如果经常更新的文件，
+不建议使用 Expires 来缓存），我这里设置 3d，表示在这 3 天之内访问这个 URL，发送
+一个请求，比对服务器该文件最后更新时间没有变化，则不会从服务器抓取，返回状态码
+304，如果有修改，则直接从服务器重新下载，返回状态码 200。
+
+#### 2、准备工作
+
+（1）在 linxu 西贡中准备静态资源，用于进行访问。
+
+#### 3、具体配置
+
+```
+server{
+	server_name 192.168.200.131;
+	location /www/ {
+		root /data/;
+		index index.html index.ht,;
+	}
+	location /image/ {
+		root /data/;
+		autoindex on; //显示目录
+	}
+}
+
+```
+
+#### 4、最终测试
+
+（1）浏览器中输入地址
+
+​	http://192.168.200.131/image
+
+​	http://192.168.200.131/www/a.html
 
 ## 6、nginx 配置高可用集群
 
+### 1、什么是 nginx 高可用
+
+（1）两台 nginx 服务器
+
+（2）keepalived
+
+（3）虚拟 IP
+
+### 2、配置高可用的准备工作
+
+（1）两台服务器
+
+（2）两台服务器安装 nginx
+
+（3）两台服务器安装 keepalived
+
+### 3、在两台服务器安装 keepalived
+
+（1）用 yum 命令安装
+
+```shell
+yum -y install keepalived //安装
+rpm -qa keepalived //查看
+```
+
+（2）安装之后，在 etc 里面生成目录 keepalived，有配置文件 keepalived.conf
+
+### 4、完成高可用配置（主从）
+
+（1）修改 /etc/keepalived/keepalived.conf 配置文件
+
+```
+global_defs {
+	notification_email {
+		acassen@firewall.loc
+        failover@firewall.loc
+        sysadmin@firewall.loc
+	}
+    notification_email_from Alexandre.Cassen@firewall.loc
+    smtp_server 192.168.17.129
+    smtp_connect_timeout 30
+    router_id LVS_DEVEL //访问到主机
+}
+vrrp_script chk_http_port {
+    script "/usr/local/src/nginx_check.sh"
+    interval 2 #（检测脚本执行的间隔）
+    weight 2
+}
+vrrp_instance VI_1 {
+    state MASTER # 备份服务器上将 MASTER 改为 BACKUP
+    interface ens33 //网卡
+    virtual_router_id 51 # 主、备机的 virtual_router_id 必须相同
+    priority 90 # 主、备机取不同的优先级，主机值较大，备份机值较小
+    advert_int 1
+    authentication {
+    	auth_type PASS
+   		auth_pass 1111
+    }
+    virtual_ipaddress {
+    	192.168.17.50 // VRRP H 虚拟地址
+    }
+}
+```
+
+（2）在 /usr/local/src 添加检测脚本
+
+```sh
+#!/bin/bash
+A=`ps -C nginx –no-header |wc -l`
+if [ $A -eq 0 ];then
+	/usr/local/nginx/sbin/nginx
+	sleep 2
+	if [ `ps -C nginx --no-header |wc -l` -eq 0 ];then
+		killall keepalived
+	fi
+fi
+```
+
+（3）把两台服务器上 nginx 和 keepalived 启动
+
+启动 nginx：./nginx
+
+启动 keepalived：systemctl start keepalived.service
+
+### 5、最终测试
+
+（1）在浏览器地址栏输入虚拟 ip 地址。
+
+（2）把主服务器 nginx 和 keepalived 停止，在输入虚拟 ip 地址。
+
+```shell
+./nginx -s stop
+systemctl stop keepalived.service
+```
+
 ## 7、nginx 原理
 
+### 1、master&worker
 
+### 2、worker 是如何工作的
 
+### 3、一个 master 多个 worker 的好处
 
+（1）可以使用 nginx -s reload 热部署
+
+（2 ）每个 woker 是独立的进程，如果有其中的一个 woker 出现问题，其他 woker 独立的，
+继续进行争抢，实现请求过程，不会造成服务中断。
+
+### 4、设置多少个 worker 合适
+
+wroker 数和服务器的 cpu 数相等最为合适。
+
+### 5、连接数 worker_connection
+
+第一个：发送请求，占用了 woker 的几个连接数？
+答案：2 或者 4 个。静态资源两个（client到worker，一来一回），动态资源四个（client到worker再到tomcat，一来一回）。
+
+第二个：nginx 有一个 个 master ，有四个 woker ，每个 woker 支持最大的连接数 1024 ，支持的
+最大并发数是多少？
+
+- 普通的静态访问最大并发数是： worker_connections * worker_processes /2 。
+- 而如果是 HTTP 作 为反向代理来说，最大并发数量应该是 worker_connections *
+  worker_processes/4 。
 
 #  Spring Cloud Alibaba
 
