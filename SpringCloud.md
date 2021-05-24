@@ -1537,21 +1537,92 @@ Namespace 方案：
 
 预计需要：1 个 Nginx + 3 个 nacos 注册中心 + 1 个 mysql
 
-#### 集群配置步骤
+### 集群配置步骤
 
-1. Linux 服务器上 mysql 数据库配置
+#### 1、Linux 服务器上 mysql 数据库配置
 
-2. application.properties 配置
+​	新建 nacos_config 表，执行 nacos-mysql.sql 
 
-3. Linux 服务器上 nacos 的集群配置 cluster.conf
+#### 2、application.properties 配置
 
-   IP 不能写 127.0.0.1，必须是 Linux 命令 hostname -i 能够识别的 IP
+```properties
+db.num=1
+db.url.0=jdbc:mysql://127.0.0.1:3306/nacos_config?characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true
+db.user=root
+db.password=root 
+```
 
-4. 编辑 Nacos 的启动脚本 startup.sh，使它能够接受不同的启动端口
+#### 3、Linux 服务器上 nacos 的集群配置 cluster.conf
 
-5. Nginx 的配置，由它作为负载均衡
+```conf
+//IP 不能写 127.0.0.1，必须是 Linux 命令 hostname -i 能够识别的 IP
+192.168.200.131:3333
+192.168.200.131:4444
+192.168.200.131:5555 
+```
 
-6. 截至到此，1 个 Nginx + 3 个 nacos 注册中心 + 1 个 mysql
+#### 4、编辑 Nacos 的启动脚本 startup.sh，使它能够接受不同的启动端口
+
+```sh
+#增加p选项
+while getopts ":m:f:s:c:p:" opt
+do
+    case $opt in
+        m)  
+            MODE=$OPTARG;;
+        f)  
+            FUNCTION_MODE=$OPTARG;;
+        s)  
+            SERVER=$OPTARG;;
+        c)  
+            MEMBER_LIST=$OPTARG;;
+        p)  
+            EMBEDDED_STORAGE=$OPTARG;;
+        ?)  
+        echo "Unknown parameter"
+        exit 1;; 
+    esac
+done
+#尾部附近添加打印端口
+nohup $JAVA - Dserver.port=${EMBEDDED_STORAGE} ${JAVA_OPT} nacos.nacos >> ${BASE_DIR}/logs/start.out 2>&1 &
+```
+
+#### 5、Nginx 的配置，由它作为负载均衡
+
+```conf
+#gzip  on;
+upstream cluster{
+    server 127.0.0.1:3333;
+    server 127.0.0.1:4444;
+    server 127.0.0.1:5555;
+}   
+
+server {
+    listen       1111;
+    server_name  localhost;
+
+    #charset koi8-r;
+
+    #access_log  logs/host.access.log  main;
+
+    location / { 
+    	proxy_pass http://cluster;
+    }
+}
+```
+
+按照指定启动
+
+```shell
+# cd /usr/local/nginx/sbin
+# ./nginx - c /usr/local/nginx/conf/nginx.conf
+```
+
+#### 6、截至到此，1 个 Nginx + 3 个 nacos 注册中心 + 1 个 mysql
+
+测试通过 nginx 访问 nacos：http://192.168.200.131:1111/nacos/#/login
+
+新建配置测试，新建配置后 mysql 插入一条记录：select * from config_info;
 
 测试
 
